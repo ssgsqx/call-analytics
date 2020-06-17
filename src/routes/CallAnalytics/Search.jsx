@@ -9,15 +9,6 @@ class Search extends PureComponent {
 
     return (
       <div className={style.wrapper}>
-        <div>
-          <label htmlFor="">切换项目：</label>
-          <Select defaultValue="lucy" style={{ width: 120 }}>
-            <Option value="jack">Jack</Option>
-            <Option value="lucy">Lucy</Option>
-            <Option value="Yiminghe">yiminghe</Option>
-          </Select>
-        </div>
-
         <SearchParams />
         <List />
       </div>
