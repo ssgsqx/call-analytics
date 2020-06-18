@@ -36,9 +36,9 @@ class SearchParams extends PureComponent {
 
           <Col span={7}>
             <InputGroup compact>
-              <Select defaultValue="Zhejiang" style={{ width: "35%" }}>
-                <Option value="Zhejiang">Zhejiang</Option>
-                <Option value="Jiangsu">Jiangsu</Option>
+              <Select defaultValue="cname" style={{ width: "35%" }}>
+                <Option value="cname">频道名称</Option>
+                <Option value="uid">User</Option>
               </Select>
               <Input defaultValue="" style={{ width: "65%" }} />
             </InputGroup>
