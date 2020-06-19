@@ -84,10 +84,10 @@ export const getRouterData = app => {
         import("../routes/CallAnalytics/Search")
       )
     },
-    "/call-analytics/qoe": {
+    "/call-analytics/conference/:confrId": {
       // 详情
       component: dynamicWrapper(app, ["callAnalytics"], () =>
-        import("../routes/CallAnalytics/Qoe")
+        import("../routes/CallAnalytics/Conference")
       )
     }
   };

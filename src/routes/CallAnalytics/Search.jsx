@@ -1,12 +1,20 @@
 import React, { PureComponent } from "react";
 import style from "./Search.less";
-
-import { Form, Select, DatePicker, Input, Button, Col, Row, Table } from "antd";
+import { get } from '../../services/rtc-analytics/conferences';
+import { Link } from 'dva/router';
+import { 
+  Form, 
+  Select, 
+  DatePicker, 
+  Input, 
+  Button, 
+  Col, 
+  Row, 
+  Table 
+} from "antd";
 
 class Search extends PureComponent {
   render() {
-    const { Option } = Select;
-
     return (
       <div className={style.wrapper}>
         <SearchParams />
@@ -61,19 +69,6 @@ class SearchParams extends PureComponent {
   }
 }
 
-// 进入详情页面
-function join_qoe(id) {
-  if (!id) {
-    return;
-  }
-
-  let { protocol, host } = window.location;
-
-  let url = `${protocol}//${host}/call-analytics/qoe?id=${id}`;
-
-  window.open(url, false);
-}
-
 // 结果列表
 class List extends PureComponent {
   state = {
@@ -81,72 +76,67 @@ class List extends PureComponent {
     columns: [
       {
         title: "通话ID",
-        dataIndex: "id"
+        dataIndex: "confrId"
       },
       {
         title: "时区",
-        dataIndex: "timeRange"
+        key: "timeRange",
+        render:(text,record) => (record.createdTs +'-'+ record.destroyedTs)
       },
       {
         title: "时长",
-        dataIndex: "duration"
+        dataIndex: "dur"
       },
       {
         title: "频道名称",
-        dataIndex: "cname"
+        dataIndex: "roomName"
       },
       {
         title: "操作",
-        dataIndex: "action"
+        key: "action",
+        render:(text,record) => (
+          record.finished ? 
+          <Link 
+            to={`/call-analytics/conference/${record.confrId}`}
+            target='_blank'
+          >查看通话</Link> : '')
+
       }
     ],
     loading: true
   };
 
-  get_data() {
-    let { data } = this.state;
+  get_list() {
     let _this = this;
-    setTimeout(() => {
-      data = [
-        {
-          key: 1,
-          id: 1,
-          timeRange: "2020/06/04 15:00 - 2020/06/04 15:08",
-          duration: "3 min",
-          cname: "test",
-          action: (
-            <Button type="link" onClick={() => join_qoe(1)}>
-              查看通话
-            </Button>
-          )
-        },
-        {
-          key: 2,
-          id: 2,
-          timeRange: "2020/06/04 15:00 - 2020/06/04 15:08",
-          duration: "3 min",
-          cname: "test2",
-          action: <Button type="link">查看通话</Button>
-        },
-        {
-          key: 3,
-          id: 3,
-          timeRange: "2020/06/04 15:00 - 2020/06/04 15:08",
-          duration: "3 min",
-          cname: "test3",
-          action: <Button type="link">进行中</Button>
-        }
-      ];
-
+    let params = {}
+    get(params).then(response => {
       _this.setState({
-        data,
+        data: response.data,
         loading: false
       });
-    }, 2000);
-  }
+    })
 
+  }
+  set_appkey_in_localstorage(success_callback) {
+
+    const getQueryVariable = (variable) => {
+           var query = window.location.href.split('?')[1];
+           var vars = query.split("&");
+           for (var i=0;i<vars.length;i++) {
+                   var pair = vars[i].split("=");
+                   if(pair[0] == variable){return pair[1];}
+           }
+           return(false);
+    }
+    const appkey = getQueryVariable('appkey');
+    localStorage.setItem('easemob-appkey',appkey)
+
+    if(typeof success_callback == 'function'){
+      success_callback(this)
+    }
+  }
   componentDidMount() {
-    this.get_data();
+    this.set_appkey_in_localstorage(this.get_list.bind(this))
   }
 
   render() {

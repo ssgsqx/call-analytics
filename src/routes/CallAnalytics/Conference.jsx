@@ -1,36 +1,21 @@
 import React, { PureComponent } from "react";
-import style from "./Qoe.less";
+import style from "./Conference.less";
 
 import { Form, Select, DatePicker, Input, Button, Col, Row, Table } from "antd";
 
-import data from "./data.json";
 
-class Qoe extends PureComponent {
+import { get_by_confrId } from '../../services/rtc-analytics/conferences'
+import { get_users } from '../../services/rtc-analytics/conference';
+
+class Conference extends PureComponent {
   state = {
     basic_info: [],
-    user_list: []
+    basic_info_table_loading: true,
+    user_list: [],
+    user_list_table_loading: true,
+
+    confrId: this.props.match.params.confrId
   };
-  // 通话概述
-  get_basic_info_by_id(id) {
-    if (!id) {
-      return;
-    }
-
-    let _this = this;
-    setTimeout(() => {
-      let { basic_info } = data;
-      _this.setState({ basic_info });
-    }, 2000);
-  }
-
-  // 通话人员
-  get_user_list(params) {
-    let _this = this;
-    setTimeout(() => {
-      let { user_list } = data;
-      _this.setState({ user_list });
-    }, 2000);
-  }
 
   // 通话质量
   get_qoe_counters() {
@@ -38,16 +23,36 @@ class Qoe extends PureComponent {
   }
 
   componentDidMount() {
-    let id = 1;
-    this.get_basic_info_by_id(id);
-    this.get_user_list();
+
+      let { confrId } = this.state;
+      let _this = this;
+      get_users(confrId).then(response => {
+        _this.setState({ 
+          user_list: response.data,
+          user_list_table_loading: false
+        });
+      }).catch(error => console.log(error));
+
+      const get_basic_info = get_by_confrId;//获取会议基本信息
+
+      get_basic_info({ confrId }).then(response => {
+          _this.setState({
+            basic_info: response,
+            basic_info_table_loading: false
+          })
+      }).catch(error => console.error(error))
   }
   render() {
-    let { basic_info, user_list } = this.state;
+    let { 
+      basic_info, 
+      basic_info_table_loading,
+      user_list,
+      user_list_table_loading
+    } = this.state;
     return (
       <div className={style.wrapper}>
-        <BasicInfo basic_info={basic_info} />
-        <UserList user_list={user_list} />
+        <BasicInfo data={basic_info} loading={basic_info_table_loading}/>
+        <UserList data={user_list} loading={user_list_table_loading} />
       </div>
     );
   }
@@ -55,7 +60,7 @@ class Qoe extends PureComponent {
 
 // 通话基础信息模块
 function BasicInfo(props) {
-  let { basic_info: data } = props;
+  let { data, loading } = props;
 
   const columns = [
     {
@@ -64,7 +69,7 @@ function BasicInfo(props) {
     },
     {
       title: "频道名称",
-      dataIndex: "cname"
+      dataIndex: "roomName"
     },
     {
       title: "时区",
@@ -72,24 +77,29 @@ function BasicInfo(props) {
     },
     {
       title: "时长",
-      dataIndex: "duration"
+      dataIndex: "dur"
     }
   ];
-  return <Table dataSource={data} columns={columns} pagination={false} />;
+  return <Table 
+            dataSource={data} 
+            columns={columns} 
+            pagination={false}
+            loading={loading} 
+          />;
 }
 // 通话人员模块
 function UserList(props) {
-  let { user_list: data } = props;
+  let { data, loading } = props;
 
   const columns = [
     {
       title: "User",
-      dataIndex: "uid",
+      dataIndex: "memId",
       ellipsis: true
     },
     {
       title: "区域",
-      dataIndex: "loc",
+      dataIndex: "ip",
       ellipsis: true
     },
     {
@@ -104,12 +114,12 @@ function UserList(props) {
     },
     {
       title: "时长",
-      dataIndex: "duration",
+      dataIndex: "dur",
       ellipsis: true
     },
     {
       title: "在频道内时间",
-      dataIndex: "duration",
+      dataIndex: "dur",
       ellipsis: true
     },
     {
@@ -129,12 +139,11 @@ function UserList(props) {
     },
     {
       title: "设备",
-      dataIndex: "deviceType",
+      dataIndex: "deviceInfo",
       ellipsis: true
     },
     {
       title: "查看体验",
-      dataIndex: "",
       key: "operation",
       ellipsis: true
     }
@@ -144,10 +153,11 @@ function UserList(props) {
       dataSource={data}
       columns={columns}
       pagination={false}
+      loading={loading}
       size="small"
     />
   );
 }
 // 通话质量模块
 
-export default Qoe;
+export default Conference;
