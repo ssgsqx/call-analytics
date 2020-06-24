@@ -13,7 +13,7 @@ const origin = '/api';
 // const prefix = origin + '/' + orgName + '/' + appName;
 
 const prefix = origin;
-// 通话列表
+// 通话成员列表
 export async function get_users(confrId, params) {
     if(!confrId) {
         return new Promise((resolve,reject) => {
@@ -25,4 +25,21 @@ export async function get_users(confrId, params) {
     }
     
     return request( `${prefix}/rtc/analytics/conference/${confrId}/users`);
+}
+
+// 通话成员事件集合
+export async function get_event_list(confrId, memId, params) {
+    if(
+        !confrId ||
+        !memId
+    ) {
+        return new Promise((resolve,reject) => {
+            reject({
+                error:-2,
+                message:'get event_list confrId and memId is required'
+            })
+        })
+    }
+
+    return request( `${prefix}/rtc/analytics/conference/${confrId}/users/${memId}/events`);
 }

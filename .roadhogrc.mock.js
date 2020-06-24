@@ -12,7 +12,8 @@ import { format, delay } from 'roadhog-api-doc';
 // 以下为 easemob project
 import { 
   getConferences, 
-  getUsers 
+  getUsers, 
+  getEventList
 } from './mock/rtc-analytics';
 
 // 是否禁用代理
@@ -151,6 +152,9 @@ const proxy = {
   'GET /api/rtc/analytics/conferences': getConferences,
   // 'GET /api/rtc/analytics/conferences?confrId=LBJ18765439087': getConferences,
   'GET /api/rtc/analytics/conference/LBJ18765439087/users': getUsers,
+  'GET /api/rtc/analytics/conference/LBJ18765439087/users/4789321/events': getEventList,
+  'GET /api/rtc/analytics/conference/LBJ18765439087/users/478897/events': getEventList,
+  'GET /api/rtc/analytics/conference/LBJ18765439087/users/6723878/events': getEventList,
 };
 
 const real_server = {

@@ -1,6 +1,4 @@
 export const getConferences = (req, res) => {
-
-    console.log('getConferences', req.query);
     if(
         req.query &&
         req.query.confrId
@@ -120,8 +118,81 @@ export const getUsers = (req, res) => {
         )
     },2000)
 }
+
+// 获取事件列表
+export const getEventList = (req, res) => {
+    setTimeout(() => {
+        res.json({   
+            "requestTs": 1591237718, //请求时间
+            "dur": 123, //查询耗时时长，单位毫秒
+            "data":[
+                {
+                    "evt": "WS_NET",
+                    "ts": 1592981939383, //事件发生时的时间戳，以服务器时间为参考
+                    "sendTs": '',//sdk 发送时间戳
+                    "recvTs":  '', //服务器时间戳
+                }, 
+                {
+                    "evt": "JOINED_CONFR",
+                    "ts": 1592981939925, 
+                    "sendTs": '',
+                    "recvTs":  '', 
+                }, 
+                {
+                    "evt": "GET_USER_MEDIA",
+                    "ts": 1592981943101, 
+                    "sendTs": '',
+                    "recvTs":  '', 
+                }, 
+                {
+                    "evt": "MEM_ENTER",
+                    "ts": 1592981943101, 
+                    "sendTs": '',
+                    "recvTs":  '', 
+                }, 
+                {
+                    "evt": "STREAM_PUB",
+                    "ts": 1592981956616, 
+                    "sendTs": '',
+                    "recvTs":  '', 
+                }, 
+                {
+                    "evt": "STREAM_setVideoProfile",
+                    "ts": 1592981964619, 
+                    "sendTs": '',
+                    "recvTs":  '', 
+                }, 
+                {
+                    "evt": "DECODE_FIRST_VIDEO_FRAME",
+                    "ts": 1592982021625, 
+                    "sendTs": '',
+                    "recvTs":  '', 
+                }, 
+                {
+                    "evt": "STREAM_setVideoProfile",
+                    "ts": 1592982034522, 
+                    "sendTs": '',
+                    "recvTs":  '', 
+                }, 
+                {
+                    "evt": "MEM_EXIT",
+                    "ts": 1592982226782, 
+                    "sendTs": '',
+                    "recvTs":  '', 
+                }, 
+                {
+                    "evt": "WebQuit",
+                    "ts": 1592982221580, 
+                    "sendTs": '',
+                    "recvTs":  '', 
+                }, 
+            ]
+        })
+    }, 2000)
+}
 export default {
     getConferences,
-    getUsers
+    getUsers,
+    getEventList
 };
   

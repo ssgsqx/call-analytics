@@ -1,11 +1,14 @@
 import React, { PureComponent } from "react";
 import style from "./Conference.less";
 
+import Highcharts from "highcharts";
+import HighchartsReact from "highcharts-react-official";
+
 import { Form, Select, DatePicker, Input, Button, Col, Row, Table } from "antd";
 
 
 import { get_by_confrId } from '../../services/rtc-analytics/conferences'
-import { get_users } from '../../services/rtc-analytics/conference';
+import { get_users, get_event_list } from '../../services/rtc-analytics/conference';
 
 class Conference extends PureComponent {
   state = {
@@ -16,11 +19,6 @@ class Conference extends PureComponent {
 
     confrId: this.props.match.params.confrId
   };
-
-  // 通话质量
-  get_qoe_counters() {
-    setTimeout(() => {}, 2000);
-  }
 
   componentDidMount() {
 
@@ -47,12 +45,23 @@ class Conference extends PureComponent {
       basic_info, 
       basic_info_table_loading,
       user_list,
-      user_list_table_loading
+      user_list_table_loading,
+      confrId
     } = this.state;
     return (
       <div className={style.wrapper}>
         <BasicInfo data={basic_info} loading={basic_info_table_loading}/>
         <UserList data={user_list} loading={user_list_table_loading} />
+        {/* 通话质量面板 */}
+
+        { user_list.map((item,index) => (
+            <UserPanel 
+                user={item} 
+                user_list={user_list} 
+                key={index}
+                confrId={confrId} />
+        )) }
+
       </div>
     );
   }
@@ -115,6 +124,7 @@ function UserList(props) {
     {
       title: "时长",
       dataIndex: "dur",
+      key:'time_length',
       ellipsis: true
     },
     {
@@ -159,5 +169,124 @@ function UserList(props) {
   );
 }
 // 通话质量模块
+class UserPanel extends PureComponent {
+    constructor(props) {
+        super(props);
 
+        this.state = {
+            user: this.props.user,
+            user_list: this.props.user_list,
+            confrId: this.props.confrId,
+            event_list: [],
+        }
+    }
+
+    componentDidMount() {
+        let { confrId } = this.state;
+        let { memId } = this.state.user;
+
+        let _this = this;
+        get_event_list(confrId, memId).then(response => {
+            _this.setState({
+                event_list: response.data
+            })
+        })
+    }
+
+    render() {
+        let { user, user_list } = this.props;
+//         deviceInfo: "huawei/tas-an00/tas-an00/hwtas/29/4.14.116"
+// dur: 200
+// endReason: 1
+// exitTs: 1591238240
+// ip: "ip地址"
+// joinTs: 1591238040
+// memId: "4789321"
+// memName: "sqx1"
+// net: "Wi-Fi"
+// os: "Android"
+// osVersion: ""
+// role: 3
+// sdkVersion: "2.9.2"
+// sessionId: ""
+        return <Col span={12} className={style['user-panel']}>
+            <div className="user-info">
+                <h2 style={{display:'inline-block'}}>{user.memId}</h2>
+                <span>{user.os}</span>
+                <span>{user.sdkVersion}</span>
+            </div>
+            <Chart />
+            <div className={style['event-list']}>
+                <div className={style['event-progress-container']}></div>
+                <div className={style['progress-par']}></div>
+            </div>
+        </Col>
+    }
+}
+
+
+
+// 图表
+class Chart extends PureComponent {
+    render() {
+      const options = {
+        chart: {
+          zoomType: "x",
+          height:200
+        },
+        xAxis: {
+          categories: [0, 1, 2, 3] // x 轴分类
+        },
+        yAxis: {
+          title: {
+            text: "" // y 轴标题
+          },
+          labels: {
+            formatter: function() {
+              return Math.abs(this.value) + "kbps";
+            }
+          }
+        },
+        tooltip: {
+          shared: true,
+          crosshairs: [
+            {
+              width: 1,
+              color: "#000"
+            }
+          ]
+        },
+        series: [
+          {
+            type: "areaspline",
+            name: "小明",
+            data: [2, 8, 10, 12, 14, 10, 6, 4],
+            marker: {
+              enabled: false
+            }
+          },
+          {
+            type: "areaspline",
+            name: "小红",
+            data: [0, 0, -15, -13, -10, -8, -6, -4],
+            marker: {
+              enabled: false
+            }
+          },
+          {
+            type: "column",
+            color: "red",
+            pointWidth: 1,
+            borderWidth: 0,
+            data: [30, 20, 10, 30, 40]
+          }
+        ]
+      };
+      return (
+        <div>
+          <HighchartsReact highcharts={Highcharts} options={options} />
+        </div>
+      );
+    }
+  }
 export default Conference;
