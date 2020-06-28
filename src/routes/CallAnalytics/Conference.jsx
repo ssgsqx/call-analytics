@@ -45,8 +45,7 @@ class Conference extends PureComponent {
       basic_info, 
       basic_info_table_loading,
       user_list,
-      user_list_table_loading,
-      confrId
+      user_list_table_loading
     } = this.state;
     return (
       <div className={style.wrapper}>
@@ -59,7 +58,7 @@ class Conference extends PureComponent {
                 user={item} 
                 user_list={user_list} 
                 key={index}
-                confrId={confrId} />
+                {...basic_info[0]} />
         )) }
 
       </div>
@@ -194,7 +193,7 @@ class UserPanel extends PureComponent {
     }
 
     render() {
-        let { user, user_list } = this.props;
+        let { user, user_list, event_list } = this.state;
 //         deviceInfo: "huawei/tas-an00/tas-an00/hwtas/29/4.14.116"
 // dur: 200
 // endReason: 1
@@ -216,10 +215,7 @@ class UserPanel extends PureComponent {
                 <span>{user.sdkVersion}</span>
             </div>
             <Chart />
-            <div className={style['event-list']}>
-                <div className={style['event-progress-container']}></div>
-                <div className={style['progress-par']}></div>
-            </div>
+            <EventList event_list={event_list} conference_duration={} />
         </Col>
     }
 }
@@ -288,5 +284,47 @@ class Chart extends PureComponent {
         </div>
       );
     }
-  }
+}
+
+// 事件列表
+class EventList extends PureComponent {
+    constructor(props){
+        super(props);
+
+        this.state = {
+            event_list: this.props.event_list,
+            conference_duration: this.props.conference_duration
+        }
+    }
+    static getDerivedStateFromProps(props) {
+        return {
+            event_list: props.event_list
+        };
+    }
+    // 画事件柱子
+    /*
+    * 平分 100份
+    *
+    *
+    */ 
+
+    // 传入单个数据，得到在progress-par 上的位置
+    get_events_el(data) {
+
+    }
+
+    // 计算会议总时长
+    get_conference_duration() {
+        
+
+    }
+    render() {
+        let { event_list } = this.state;
+
+        return <div className={style['event-list']}>
+                    <div className={style['event-progress-container']}></div>
+                    <div className={style['progress-par']}></div>
+                </div>
+    }
+}
 export default Conference;
