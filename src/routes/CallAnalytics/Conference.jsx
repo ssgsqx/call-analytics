@@ -11,13 +11,8 @@ import { Form, Select, DatePicker, Input, Button, Col, Row, Table } from "antd";
 
 import { get_by_confrId } from '../../services/rtc-analytics/conferences'
 import { get_users, get_event_list } from '../../services/rtc-analytics/conference';
-const { Provider,Consumer } = React.createContext('conference');
-console.log('Provider,Consumer',Provider,Consumer);
 
 class Conference extends PureComponent {
-    static childContextTypes = {
-        basic_info: PropTypes.object
-    };
     state = {
         basic_info: [],
         basic_info_table_loading: true,
@@ -26,12 +21,6 @@ class Conference extends PureComponent {
 
         confrId: this.props.match.params.confrId
     };
-    getChildContext() { // 传递数据给后代组件
-        console.log('getChildContext', this.state.basic_info[0]);
-        
-        let basic_info  = this.state.basic_info[0]
-        return { basic_info };
-    }
 
   componentDidMount() {
 
@@ -71,6 +60,7 @@ class Conference extends PureComponent {
                 user={item} 
                 user_list={user_list} 
                 key={index}
+                conference_info={basic_info[0]}
             />
         )) }
 
@@ -207,6 +197,7 @@ class UserPanel extends PureComponent {
 
     render() {
         let { user, user_list, event_list } = this.state;
+        let { conference_info } = this.props;
 //         deviceInfo: "huawei/tas-an00/tas-an00/hwtas/29/4.14.116"
 // dur: 200
 // endReason: 1
@@ -228,7 +219,7 @@ class UserPanel extends PureComponent {
                 <span>{user.sdkVersion}</span>
             </div>
             <Chart />
-            <EventList event_list={event_list}/>
+            <EventList { ...{event_list, conference_info}}/>
         </Col>
     }
 }
@@ -301,15 +292,12 @@ class Chart extends PureComponent {
 
 // 事件列表
 class EventList extends React.Component {
-    // 声明需要使用的Context属性
-    static contextTypes = {
-        basic_info: PropTypes.object,
-    };
     constructor(props){
         super(props);
 
         this.state = {
-            event_list: this.props.event_list
+            event_list: this.props.event_list,
+            conference_info: this.props.conference_info
         }
     }
     static getDerivedStateFromProps(props) {
@@ -318,19 +306,7 @@ class EventList extends React.Component {
             event_list: props.event_list
         };
     }
-    // componentWillReceiveProps(nextProps, nextContext){
-    //     console.log('componentWillReceiveProps context', nextContext);
-        
-        
-    // }
-    shouldComponentUpdate(nextProps, nextState, nextContext) {
-        console.log('shouldComponentUpdate', nextContext);
-        
-    }
-    componentDidUpdate(prevProps, prevState, prevContext){
-        console.log('componentDidUpdate context', nextContext);
-        
-    }
+    
 
     // 画事件柱子
     /*
@@ -351,8 +327,6 @@ class EventList extends React.Component {
     }
     render() {
         let { event_list } = this.state;
-        let { basic_info } = this.context
-        // console.log('this.context basic_info', basic_info)
 
         return <div className={style['event-list']}>
                     <div className={style['event-progress-container']}></div>
