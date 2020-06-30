@@ -6,11 +6,18 @@ import style from "./Conference.less";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 
-import { Form, Select, DatePicker, Input, Button, Col, Row, Table } from "antd";
+import { 
+    Form, Select, DatePicker, Input, Button, Col, Row, Table,
+    Popover
+} from "antd";
 
 
 import { get_by_confrId } from '../../services/rtc-analytics/conferences'
-import { get_users, get_event_list } from '../../services/rtc-analytics/conference';
+import { 
+    get_users, 
+    get_event_list,
+    get_qoe
+} from '../../services/rtc-analytics/conference';
 
 class Conference extends PureComponent {
     state = {
@@ -44,6 +51,7 @@ class Conference extends PureComponent {
   }
   render() {
     let { 
+        confrId,
       basic_info, 
       basic_info_table_loading,
       user_list,
@@ -60,6 +68,7 @@ class Conference extends PureComponent {
                 user={item} 
                 user_list={user_list} 
                 key={index}
+                confrId={confrId}
                 conference_info={basic_info[0]}
             />
         )) }
@@ -180,6 +189,7 @@ class UserPanel extends PureComponent {
             user_list: this.props.user_list,
             confrId: this.props.confrId,
             event_list: [],
+            qoe: []
         }
     }
 
@@ -192,11 +202,24 @@ class UserPanel extends PureComponent {
             _this.setState({
                 event_list: response.data
             })
+        });
+
+        // 通话质量数据
+        get_qoe(confrId, memId).then(response => {
+            _this.setState({
+                qoe: response
+            })
         })
     }
 
     render() {
-        let { user, user_list, event_list } = this.state;
+        let { 
+            user, 
+            user_list, 
+            event_list,
+            qoe
+        } = this.state;
+
         let { conference_info } = this.props;
 //         deviceInfo: "huawei/tas-an00/tas-an00/hwtas/29/4.14.116"
 // dur: 200
@@ -213,12 +236,12 @@ class UserPanel extends PureComponent {
 // sdkVersion: "2.9.2"
 // sessionId: ""
         return <Col span={12} className={style['user-panel']}>
-            <div className="user-info">
+            <div className={style["user-info"]}>
                 <h2 style={{display:'inline-block'}}>{user.memId}</h2>
                 <span>{user.os}</span>
                 <span>{user.sdkVersion}</span>
             </div>
-            <Chart />
+            <Chart { ...{qoe, conference_info}}/>
             <EventList { ...{event_list, conference_info}}/>
         </Col>
     }
@@ -229,23 +252,57 @@ class UserPanel extends PureComponent {
 // 图表
 class Chart extends PureComponent {
     render() {
+        if(!this.props.conference_info) {
+            return ''
+        }
+        let { createdTs, destroyedTs } = this.props.conference_info
+        
       const options = {
         chart: {
           zoomType: "x",
           height:200
         },
+        legend: {
+            enabled: false
+        },
+        credits: {
+            enabled: false
+        },
         xAxis: {
-          categories: [0, 1, 2, 3] // x 轴分类
+        //   categories: [0, 1, 2, 3] // x 轴分类
+            type:"datetime",
+            tickInterval: 60000,
+            // startOnTick: true,
+            // endOnTick: true,
+            // labels: {
+            //     formatter: function() {
+            //         let date = new Date(this.value);
+            //         return `${date.getHours()} : ${date.getMinutes()}`
+            //     }
+            // }
+            min: createdTs*1000,
+            max: destroyedTs*1000,
+        },
+        title: {
+            text: null
         },
         yAxis: {
           title: {
-            text: "" // y 轴标题
+            text: null // y 轴标题
           },
           labels: {
             formatter: function() {
               return Math.abs(this.value) + "kbps";
             }
-          }
+          },
+            min: -120,  //最小
+            tickInterval: 120, //步长
+            max:840,//最大
+            gridLineWidth: 0,
+            tickWidth:1,
+            plotLines:[{
+                value:0
+            }]
         },
         tooltip: {
           shared: true,
@@ -256,31 +313,32 @@ class Chart extends PureComponent {
             }
           ]
         },
-        series: [
-          {
-            type: "areaspline",
-            name: "小明",
-            data: [2, 8, 10, 12, 14, 10, 6, 4],
-            marker: {
-              enabled: false
-            }
-          },
-          {
-            type: "areaspline",
-            name: "小红",
-            data: [0, 0, -15, -13, -10, -8, -6, -4],
-            marker: {
-              enabled: false
-            }
-          },
-          {
-            type: "column",
-            color: "red",
-            pointWidth: 1,
-            borderWidth: 0,
-            data: [30, 20, 10, 30, 40]
-          }
-        ]
+        series: this.props.qoe
+        // series: [
+        //   {
+        //     type: "areaspline",
+        //     name: "小明",
+        //     data: [2, 8, 10, 12, 14, 10, 6, 4],
+        //     marker: {
+        //       enabled: false
+        //     }
+        //   },
+        //   {
+        //     type: "areaspline",
+        //     name: "小红",
+        //     data: [0, 0, -15, -13, -10, -8, -6, -4],
+        //     marker: {
+        //       enabled: false
+        //     }
+        //   },
+        //   {
+        //     type: "column",
+        //     color: "red",
+        //     pointWidth: 1,
+        //     borderWidth: 0,
+        //     data: [30, 20, 10, 30, 40]
+        //   }
+        // ]
       };
       return (
         <div>
@@ -291,7 +349,7 @@ class Chart extends PureComponent {
 }
 
 // 事件列表
-class EventList extends React.Component {
+class EventList extends PureComponent {
     constructor(props){
         super(props);
 
@@ -303,7 +361,8 @@ class EventList extends React.Component {
     static getDerivedStateFromProps(props) {
 
         return {
-            event_list: props.event_list
+            event_list: props.event_list,
+            conference_info: props.conference_info
         };
     }
     
@@ -316,20 +375,72 @@ class EventList extends React.Component {
     */ 
 
     // 传入单个数据，得到在progress-par 上的位置
-    get_events_el(data) {
+    get_position(data) {
+        if(
+            !data ||
+            !data.ts
+        ) {
+            return
+        }
 
-    }
+        let {
+            dur,
+            createdTs
+        } = this.state.conference_info;
 
-    // 计算会议总时长
-    get_conference_duration() {
+        let { ts } = data; //事件的时间戳
+        // (当前时间戳 - 会议开始时间)/总会议时长 --- 计算在会议中的位置
+        // console.log('ts',ts,createdTs,dur);
         
+        let left = Math.round(((ts - createdTs)/(dur*1000))*100);
 
+        let position_info = {
+            left,
+
+        }
+        return position_info
     }
-    render() {
+
+    // 组合 column 和 popover 
+    combination_column_and_popover() {
         let { event_list } = this.state;
 
+        let _this = this;
+        let columns = {}; // 以计算的位置为 key
+        event_list.map(item => {
+            let position = _this.get_position(item);
+
+            let { left } = position;
+            if(!columns[left]){ // 不存在 就定义一个 array
+                columns[left] = { event_list: []}
+            }
+            columns[left].event_list.push(item)
+            
+        })
+        return columns
+    }
+    get_event_el() {
+        let columns = this.combination_column_and_popover()
+
+        let columns_el = Object.keys(columns).map((columns_key, index) => {
+
+            let popover_el = columns[columns_key].event_list.map(item => <div>{item.evt}</div>);
+
+            return <Popover content={popover_el} title="Title" trigger="click">
+                        <div 
+                            key={index}
+                            className={style['event-column']} 
+                            style={{left:(columns_key + '%'),height:'50%'}}>
+                        </div>
+                    </Popover>
+        })
+        
+        return <div className={style['event-progress-container']}>{columns_el}</div>
+    }
+    render() {
+
         return <div className={style['event-list']}>
-                    <div className={style['event-progress-container']}></div>
+                    { this.get_event_el() }
                     <div className={style['progress-par']}></div>
                 </div>
     }

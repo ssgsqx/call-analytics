@@ -13,7 +13,8 @@ import { format, delay } from 'roadhog-api-doc';
 import { 
   getConferences, 
   getUsers, 
-  getEventList
+  getEventList,
+  getQoe
 } from './mock/rtc-analytics';
 
 // 是否禁用代理
@@ -155,6 +156,9 @@ const proxy = {
   'GET /api/rtc/analytics/conference/LBJ18765439087/users/4789321/events': getEventList,
   'GET /api/rtc/analytics/conference/LBJ18765439087/users/478897/events': getEventList,
   'GET /api/rtc/analytics/conference/LBJ18765439087/users/6723878/events': getEventList,
+  'GET /api/rtc/analytics/conference/LBJ18765439087/users/4789321/qoe': getQoe,
+  'GET /api/rtc/analytics/conference/LBJ18765439087/users/478897/qoe': getQoe,
+  'GET /api/rtc/analytics/conference/LBJ18765439087/users/6723878/qoe': getQoe,
 };
 
 const real_server = {
