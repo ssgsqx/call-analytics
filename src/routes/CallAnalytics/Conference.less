@@ -1,38 +1,44 @@
 
 .user-panel {
-    padding: 10px;
+    padding: 15px 15px 0 15px;
+    background: #fff;
     .user-info {
         background: #fff;
     }
-}
-.event-list{
-    
-    .event-progress-container { // event 柱状图 包裹容器
-        height: 32px;
+    .chart {
+        margin-right: 40px;
+        min-height: 200px;
+    }
+    .event-list{
+        padding: 0 54px 10px 76px;
         background: #fff;
-        position: relative;
-    }
-    .progress-par {
-        height: 2px;
-        position: relative;
-        left: -1px;
-        background-color: #51bef0;
-    }
-    .event-column {
-        width: 1%;
-        background: #51bef0;
-        border-right: 2px solid #e9ecef;
-
-        position: absolute;
-        bottom: 0;
-
-        cursor: pointer;
-        transition: all .6s;
-        
-        &:hover {
-            transform: scale(1.2);
+        .event-progress-container { // event 柱状图 包裹容器
+            height: 32px;
+            // background: #fff;
+            position: relative;
         }
-
-
+        .progress-par {
+            height: 2px;
+            position: relative;
+            left: -1px;
+            background-color: #51bef0;
+        }
+        .event-column {
+            width: 1%;
+            background: #51bef0;
+            border-right: 2px solid #e9ecef;
+    
+            position: absolute;
+            bottom: 0;
+    
+            cursor: pointer;
+            transition: all .6s;
+            
+            &:hover {
+                transform: scale(1.2);
+            }
+    
+    
+        }
     }
 }

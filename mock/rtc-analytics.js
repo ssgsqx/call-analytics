@@ -126,75 +126,54 @@ export const getEventList = (req, res) => {
             "requestTs": 1591237718, //请求时间
             "dur": 123, //查询耗时时长，单位毫秒
             "data":[
-                {
-                    "evt": "WS_NET",
-                    "ts": 1592982191980, //事件发生时的时间戳，以服务器时间为参考
-                    "sendTs": '',//sdk 发送时间戳
-                    "recvTs":  '', //服务器时间戳
-                }, 
-                {
-                    "evt": "JOINED_CONFR",
-                    "ts": 1592982193980, 
-                    "sendTs": '',
-                    "recvTs":  '', 
-                }, 
-                {
-                    "evt": "GET_USER_MEDIA",
-                    "ts": 1592982262980, 
-                    "sendTs": '',
-                    "recvTs":  '', 
-                }, 
-                {
-                    "evt": "MEM_ENTER",
-                    "ts": 1592982263980, 
-                    "sendTs": '',
-                    "recvTs":  '', 
-                }, 
-                {
-                    "evt": "STREAM_PUB",
-                    "ts": 1592982264980, 
-                    "sendTs": '',
-                    "recvTs":  '', 
-                }, 
-                {
-                    "evt": "STREAM_setVideoProfile",
-                    "ts": 1592982369980, 
-                    "sendTs": '',
-                    "recvTs":  '', 
-                }, 
-                {
-                    "evt": "DECODE_FIRST_VIDEO_FRAME",
-                    "ts": 1592982370980, 
-                    "sendTs": '',
-                    "recvTs":  '', 
-                }, 
-                {
-                    "evt": "STREAM_setVideoProfile",
-                    "ts": 1592982380980, 
-                    "sendTs": '',
-                    "recvTs":  '', 
-                }, 
-                {
-                    "evt": "MEM_EXIT",
-                    "ts": 1592982381980, 
-                    "sendTs": '',
-                    "recvTs":  '', 
-                }, 
-                {
-                    "evt": "WebQuit",
-                    "ts": 1592982481980, 
-                    "sendTs": '',
-                    "recvTs":  '', 
-                }, 
-            ]
+                { ts: 1593420887533, evt: 'Session Start' },
+                { ts: 1593420888513, evt: 'vosdk.audioEnabled' },
+                { ts: 1593420888542, evt: 'vosdk.videoEnabled' },
+                { ts: 1593420888798, evt: 'vosdk.firstVideoPacketSent' },
+                { ts: 1593420888846, evt: 'vosdk.firstAudioPacketSent' },
+                { ts: 1593420892486, evt: 'joinGateway' },
+                { ts: 1593420895493, evt: 'publish' },
+                { ts: 1593420902500, evt: 'apiInvoke' },
+                { ts: 1593420927050, evt: 'vosdk.firstAudioPacketReceived' },
+                { ts: 1593420938963, evt: 'apiInvoke' },
+                { ts: 1593421143712, evt: 'vosdk.firstAudioPacketReceived' },
+                { ts: 1593421155697, evt: 'apiInvoke' },
+                { ts: 1593421157760, evt: 'apiInvoke' },
+                { ts: 1593421217000, evt: 'vos.uquit' },
+                { ts: 1593421217942, evt: 'WebQuit' }
+              ]
         })
     }, 2000)
 }
 
 export const getQoe = (req,res) => {
     res.json([
+     
     {
-        "id": 100020,
+        // "id": 100020,
+        "peer": 2580303294,
+        "name": "Audio Receive Bitrate - 2580303294",
+        "counter_id": 100020,
+        "data": [[1593421134000, 0], [1593421140000, -14], [1593421146000, -20], [1593421152000, -22], [1593421158000,
+            -21], [1593421164000, -22], [1593421170000, -22], [1593421176000, -21], [1593421182000, -22], [
+            1593421188000, -22], [1593421194000, -22], [1593421200000, -22], [1593421206000, -23], [
+            1593421212000, -22]],
+        "type": "areaspline",
+        "color": "#FF8300",
+        "unit": "",
+        "borderWidth": 0,
+        "fillOpacity": 0.2,
+        "zIndex": -1,
+        "grouping": true,
+        "maxPointWidth": 1,
+        "marker": {
+            "enabled": false
+        },
+        "yAxis": 0,
+        "min": -23
+    },
+    {
+        // "id": 100020,
         "peer": 2831771744,
         "name": "Audio Receive Bitrate - 2831771744",
         "counter_id": 100020,
@@ -221,16 +200,17 @@ export const getQoe = (req,res) => {
         },
         "yAxis": 0,
         "min": -38
-    }, 
+    },
+     
     {
-        "id": 100020,
+        // "id": 7100093,
         "peer": 2580303294,
-        "name": "Audio Receive Bitrate - 2580303294",
-        "counter_id": 100020,
-        "data": [[1593421134000, 0], [1593421140000, -14], [1593421146000, -20], [1593421152000, -22], [1593421158000,
-            -21], [1593421164000, -22], [1593421170000, -22], [1593421176000, -21], [1593421182000, -22], [
-            1593421188000, -22], [1593421194000, -22], [1593421200000, -22], [1593421206000, -23], [
-            1593421212000, -22]],
+        "name": "Video Receive Bitrate - 2580303294",
+        "counter_id": 7100093,
+        "data": [[1593421134000, null], [1593421140000, 194], [1593421146000, 474], [1593421152000, 432], [
+            1593421158000, 527], [1593421164000, 473], [1593421170000, 504], [1593421176000, 403], [
+            1593421182000, 510], [1593421188000, 430], [1593421194000, 515], [1593421200000, 506], [
+            1593421206000, 538], [1593421212000, 451]],
         "type": "areaspline",
         "color": "#FF8300",
         "unit": "",
@@ -243,10 +223,10 @@ export const getQoe = (req,res) => {
             "enabled": false
         },
         "yAxis": 0,
-        "min": -23
+        "max": 538
     },
     {
-        "id": 7100093,
+        // "id": 7100093,
         "peer": 2831771744,
         "name": "Video Receive Bitrate - 2831771744",
         "counter_id": 7100093,
@@ -273,30 +253,7 @@ export const getQoe = (req,res) => {
         },
         "yAxis": 0,
         "max": 526
-    }, 
-    {
-        "id": 7100093,
-        "peer": 2580303294,
-        "name": "Video Receive Bitrate - 2580303294",
-        "counter_id": 7100093,
-        "data": [[1593421134000, null], [1593421140000, 194], [1593421146000, 474], [1593421152000, 432], [
-            1593421158000, 527], [1593421164000, 473], [1593421170000, 504], [1593421176000, 403], [
-            1593421182000, 510], [1593421188000, 430], [1593421194000, 515], [1593421200000, 506], [
-            1593421206000, 538], [1593421212000, 451]],
-        "type": "areaspline",
-        "color": "#FF8300",
-        "unit": "",
-        "borderWidth": 0,
-        "fillOpacity": 0.2,
-        "zIndex": -1,
-        "grouping": true,
-        "maxPointWidth": 1,
-        "marker": {
-            "enabled": false
-        },
-        "yAxis": 0,
-        "max": 538
-    }
+    },
 ])
 }
 export default {

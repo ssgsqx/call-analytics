@@ -268,8 +268,8 @@ class Chart extends PureComponent {
         credits: {
             enabled: false
         },
+        
         xAxis: {
-        //   categories: [0, 1, 2, 3] // x 轴分类
             type:"datetime",
             tickInterval: 60000,
             // startOnTick: true,
@@ -314,34 +314,9 @@ class Chart extends PureComponent {
           ]
         },
         series: this.props.qoe
-        // series: [
-        //   {
-        //     type: "areaspline",
-        //     name: "小明",
-        //     data: [2, 8, 10, 12, 14, 10, 6, 4],
-        //     marker: {
-        //       enabled: false
-        //     }
-        //   },
-        //   {
-        //     type: "areaspline",
-        //     name: "小红",
-        //     data: [0, 0, -15, -13, -10, -8, -6, -4],
-        //     marker: {
-        //       enabled: false
-        //     }
-        //   },
-        //   {
-        //     type: "column",
-        //     color: "red",
-        //     pointWidth: 1,
-        //     borderWidth: 0,
-        //     data: [30, 20, 10, 30, 40]
-        //   }
-        // ]
       };
       return (
-        <div>
+        <div className={style['chart']}>
           <HighchartsReact highcharts={Highcharts} options={options} />
         </div>
       );
@@ -390,9 +365,9 @@ class EventList extends PureComponent {
 
         let { ts } = data; //事件的时间戳
         // (当前时间戳 - 会议开始时间)/总会议时长 --- 计算在会议中的位置
-        // console.log('ts',ts,createdTs,dur);
+        console.log('ts',ts,createdTs,dur);
         
-        let left = Math.round(((ts - createdTs)/(dur*1000))*100);
+        let left = Math.round(((ts - (createdTs*1000))/(dur*1000))*100);
 
         let position_info = {
             left,

@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 
-export default class AppHighcharts extends Component {
+export default class HighchartsTest extends Component {
   render() {
     const options = {
       chart: {
@@ -32,6 +32,7 @@ export default class AppHighcharts extends Component {
       },
       series: [
         {
+            id: 1,
           type: "areaspline",
           name: "小明",
           data: [2, 8, 10, 12, 14, 10, 6, 4],
@@ -40,6 +41,25 @@ export default class AppHighcharts extends Component {
           }
         },
         {
+            id: 1,
+          type: "areaspline",
+          name: "小明2",
+          data: [5, 8, 10, 12, 14, 10, 6, 4],
+          marker: {
+            enabled: false
+          }
+        },
+        {
+            id: 2,
+          type: "areaspline",
+          name: "小红",
+          data: [0, 0, -15, -13, -10, -8, -6, -4],
+          marker: {
+            enabled: false
+          }
+        },
+        {
+            id: 2,
           type: "areaspline",
           name: "小红",
           data: [0, 0, -15, -13, -10, -8, -6, -4],
