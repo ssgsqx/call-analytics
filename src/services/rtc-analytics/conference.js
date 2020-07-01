@@ -24,7 +24,20 @@ export async function get_users(confrId, params) {
         })
     }
     
-    return request( `${prefix}/rtc/analytics/conference/${confrId}/users`);
+    let params_str = '';
+    if(params) {
+        let dataStr = ''; //数据拼接字符串
+        Object.keys(params).forEach(key => {
+            dataStr += key + '=' + params[key] + '&';
+        })
+
+        if (dataStr !== '') {
+            dataStr = dataStr.substr(0, dataStr.lastIndexOf('&'));
+            params_str = '?' + dataStr;
+        }
+    }
+
+    return request( `${prefix}/rtc/analytics/conference/${confrId}/users${params_str}`);
 }
 
 // 通话成员事件集合

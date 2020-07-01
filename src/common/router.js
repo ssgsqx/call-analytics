@@ -90,6 +90,12 @@ export const getRouterData = app => {
         import("../routes/CallAnalytics/Conference")
       )
     },
+    "/call-analytics/e2e/:confrId/:from_memId/:to_memId": {
+      // 详情
+      component: dynamicWrapper(app, ["callAnalytics"], () =>
+        import("../routes/CallAnalytics/E2e")
+      )
+    },
 
     // test-hicharts
     "/test-highcharts": {

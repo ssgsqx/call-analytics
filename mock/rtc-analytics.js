@@ -59,6 +59,7 @@ export const getConferences = (req, res) => {
 
 
 export const getUsers = (req, res) => {
+    
     setTimeout(() => {
         res.json(
             { 
@@ -151,6 +152,7 @@ export const getQoe = (req,res) => {
      
     {
         // "id": 100020,
+        "memId": 100020,
         "peer": 2580303294,
         "name": "Audio Receive Bitrate - 2580303294",
         "counter_id": 100020,
@@ -174,6 +176,7 @@ export const getQoe = (req,res) => {
     },
     {
         // "id": 100020,
+        "memId": 100020,
         "peer": 2831771744,
         "name": "Audio Receive Bitrate - 2831771744",
         "counter_id": 100020,
@@ -204,6 +207,7 @@ export const getQoe = (req,res) => {
      
     {
         // "id": 7100093,
+        "memId": 7100093,
         "peer": 2580303294,
         "name": "Video Receive Bitrate - 2580303294",
         "counter_id": 7100093,
@@ -227,6 +231,7 @@ export const getQoe = (req,res) => {
     },
     {
         // "id": 7100093,
+        "memId": 7100093,
         "peer": 2831771744,
         "name": "Video Receive Bitrate - 2831771744",
         "counter_id": 7100093,

@@ -1,9 +1,9 @@
 import React, { PureComponent } from "react";
 
 import style from "./Conference.less";
+
 import ConferenceInfo from '../../components/CallAnalytics/ConferenceInfo';
 import UserList from '../../components/CallAnalytics/UserList';
-import { Link } from 'dva/router';
 
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
@@ -21,21 +21,28 @@ import {
     get_qoe
 } from '../../services/rtc-analytics/conference';
 
-class Conference extends PureComponent {
+class E2e extends PureComponent {
     state = {
+        from_memId: this.props.match.params.from_memId,
+        to_memId: this.props.match.params.to_memId,
+        confrId: this.props.match.params.confrId,
+
         basic_info: [],
         basic_info_table_loading: true,
         user_list: [],
         user_list_table_loading: true,
-
-        confrId: this.props.match.params.confrId
     };
 
   componentDidMount() {
 
-      let { confrId } = this.state;
+      let { 
+          confrId,
+          from_memId,
+          to_memId
+      } = this.state;
+
       let _this = this;
-      get_users(confrId).then(response => {
+      get_users(confrId, {filter: from_memId+','+to_memId }).then(response => {
         _this.setState({ 
           user_list: response.data,
           user_list_table_loading: false
@@ -59,27 +66,17 @@ class Conference extends PureComponent {
       user_list,
       user_list_table_loading
     } = this.state;
+    
     return (
       <div className={style.wrapper}>
         <ConferenceInfo data={basic_info} loading={basic_info_table_loading}/>
         <UserList data={user_list} loading={user_list_table_loading} />
-        {/* 通话质量面板 */}
-
-        { user_list.map((item,index) => (
-            <UserPanel 
-                user={item} 
-                user_list={user_list} 
-                key={index}
-                confrId={confrId}
-                conference_info={basic_info[0]}
-            />
-        )) }
+        
 
       </div>
     );
   }
 }
-
 
 
 // 通话质量模块
@@ -114,63 +111,17 @@ class UserPanel extends PureComponent {
             })
         })
     }
-    // 获取可被选择的发送端用户
-    get_can_choose_users() {
-        let { memId:my_memId } = this.state.user;
 
-        let { qoe } = this.state;
-
-        let can_choose_users = [];
-
-        qoe.map(item => {
-            if(item.memId && item.memId != my_memId){ // 自己的不算
-                can_choose_users.push(item.memId)
-            }
-        })
-
-        can_choose_users = Array.from(new Set(can_choose_users))
-
-        return can_choose_users
-    } 
     // 进入 e2e 详情
-    get_to_e2e_action_el() {
-        
-        let can_choose_users = this.get_can_choose_users();
-
-        let { confrId } = this.state;
-        let { memId:to_memId } = this.state.user;
-
-        console.log('get_to_e2e_action_el', can_choose_users);
-        
-        if(can_choose_users.length == 0) {
-            return ''
-        }
-        if(can_choose_users.length == 1) {
-            let from_memId = can_choose_users[0];
-            return <Link 
-                        to={`/call-analytics/e2e/${confrId}/${from_memId}/${to_memId}`}
-                        target='_blank'>
-                        <Button>查看详情</Button>
-                    </Link>
+    enter_details(from_memId, to_memId) {
+        if(
+            !from_memId ||
+            !to_memId
+        ) {
+            return
         }
 
-        // 多个成员加一个 popover
-        const content = (
-            <div>
-                {can_choose_users.map((item,index) => {
-                    let from_memId = item;
-                    return <Link 
-                                key={index}
-                                to={`/call-analytics/e2e/${confrId}/${from_memId}/${to_memId}`}
-                                target='_blank'>{from_memId}</Link>
-                })}
-            </div>
-        )
-        return  <Popover content={content} title="选择发送端">
-                    <Button type="primary">查看详情</Button>
-                </Popover>
         
-
     }
     render() {
         let { 
@@ -200,14 +151,13 @@ class UserPanel extends PureComponent {
                 <h2 style={{display:'inline-block'}}>{user.memId}</h2>
                 <span>{user.os}</span>
                 <span>{user.sdkVersion}</span>
-                { this.get_to_e2e_action_el() }
+                <Button onClick={()=>this.enter_details()}></Button>
             </div>
             <Chart { ...{qoe, conference_info}}/>
             <EventList { ...{event_list, conference_info}}/>
         </Col>
     }
 }
-
 
 
 // 图表
@@ -325,8 +275,9 @@ class EventList extends PureComponent {
         } = this.state.conference_info;
 
         let { ts } = data; //事件的时间戳
-
         // (当前时间戳 - 会议开始时间)/总会议时长 --- 计算在会议中的位置
+        console.log('ts',ts,createdTs,dur);
+        
         let left = Math.round(((ts - (createdTs*1000))/(dur*1000))*100);
 
         let position_info = {
@@ -380,4 +331,4 @@ class EventList extends PureComponent {
                 </div>
     }
 }
-export default Conference;
+export default E2e;
