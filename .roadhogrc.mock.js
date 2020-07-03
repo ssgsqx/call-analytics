@@ -14,7 +14,8 @@ import {
   getConferences, 
   getUsers, 
   getEventList,
-  getQoe
+  getQoe,
+  getCPU
 } from './mock/rtc-analytics';
 
 // 是否禁用代理
@@ -159,6 +160,10 @@ const proxy = {
   'GET /api/rtc/analytics/conference/LBJ18765439087/users/4789321/qoe': getQoe,
   'GET /api/rtc/analytics/conference/LBJ18765439087/users/478897/qoe': getQoe,
   'GET /api/rtc/analytics/conference/LBJ18765439087/users/6723878/qoe': getQoe,
+
+    // e2e
+    'GET /api/rtc/analytics/conference/LBJ18765439087/sender/100020/system': getCPU,   
+    'GET /api/rtc/analytics/conference/LBJ18765439087/receiver/4789321/system': getCPU,   
 };
 
 const real_server = {

@@ -261,6 +261,14 @@ export const getQoe = (req,res) => {
     },
 ])
 }
+
+export const getCPU = (req, res) => {
+    setTimeout(() => {
+        res.json({
+            data:[]
+        })
+    },2000)
+}
 export default {
     getConferences,
     getUsers,

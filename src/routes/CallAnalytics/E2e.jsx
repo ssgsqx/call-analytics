@@ -1,6 +1,6 @@
-import React, { PureComponent } from "react";
+import React, { PureComponent, useState, useEffect, useContext } from "react";
 
-import style from "./Conference.less";
+import style from "./E2e.less";
 
 import ConferenceInfo from '../../components/CallAnalytics/ConferenceInfo';
 import UserList from '../../components/CallAnalytics/UserList';
@@ -10,16 +10,20 @@ import HighchartsReact from "highcharts-react-official";
 
 import { 
     Form, Select, DatePicker, Input, Button, Col, Row, Table,
-    Popover
+    Popover,
+    Tabs
 } from "antd";
 
 
 import { get_by_confrId } from '../../services/rtc-analytics/conferences'
 import { 
-    get_users, 
-    get_event_list,
-    get_qoe
+    get_users
 } from '../../services/rtc-analytics/conference';
+import { 
+    get_cpu
+} from '../../services/rtc-analytics/e2e';
+
+const E2eContext = React.createContext();
 
 class E2e extends PureComponent {
     state = {
@@ -27,8 +31,8 @@ class E2e extends PureComponent {
         to_memId: this.props.match.params.to_memId,
         confrId: this.props.match.params.confrId,
 
-        basic_info: [],
-        basic_info_table_loading: true,
+        conference_info: [],
+        conference_info_table_loading: true,
         user_list: [],
         user_list_table_loading: true,
     };
@@ -49,133 +53,866 @@ class E2e extends PureComponent {
         });
       }).catch(error => console.log(error));
 
-      const get_basic_info = get_by_confrId;//获取会议基本信息
+      const get_conference_info = get_by_confrId;//获取会议基本信息
 
-      get_basic_info({ confrId }).then(response => {
+      get_conference_info({ confrId }).then(response => {
           _this.setState({
-            basic_info: response,
-            basic_info_table_loading: false
+            conference_info: response,
+            conference_info_table_loading: false
           })
       }).catch(error => console.error(error))
+
+
   }
   render() {
     let { 
         confrId,
-      basic_info, 
-      basic_info_table_loading,
-      user_list,
-      user_list_table_loading
+        from_memId,
+        to_memId,
+        conference_info, 
+        conference_info_table_loading,
+        user_list,
+        user_list_table_loading
     } = this.state;
     
+    const context_value = {
+        confrId,
+        from_memId,
+        to_memId,
+        conference_info
+    }
+
     return (
       <div className={style.wrapper}>
-        <ConferenceInfo data={basic_info} loading={basic_info_table_loading}/>
+        <ConferenceInfo data={conference_info} loading={conference_info_table_loading}/>
         <UserList data={user_list} loading={user_list_table_loading} />
         
-
+        <E2eContext.Provider value={context_value}>
+            <Details />
+        </E2eContext.Provider>
       </div>
     );
   }
 }
+// audio video 区域
+const Details = () => {
+    const [current_tab_key, set_current_tab_key] = useState('audio');
+    
+    const change = key => {
+        set_current_tab_key(key); // modify state.current_tab_key, clear component cache
+    }
+    const { TabPane } = Tabs;
+    return <Tabs onChange={change} type="card">
+                <TabPane tab="audio" key="audio">
+                    {/* 切换 tab 重新渲染 */}
+                    { current_tab_key == 'audio' ? 
+                        (
+                            <div>
+                                <Col span={12} >
+                                    <AudioEnd end_type='sender'/>
+                                </Col>
+                                <Col span={12} >
+                                    <AudioEnd end_type='receiver'/>
+                                </Col>
+                            </div>
+                        ) : <i></i>
+                    } 
+                </TabPane>
+                <TabPane tab="video" key="video">
+                    { current_tab_key == 'video' ? 
+                        (
+                            <div>
+                                <Col span={12} >
+                                    <VideoEnd  end_type='sender'/>
+                                </Col>
+                                <Col span={12} >
+                                    <VideoEnd end_type='receiver'/>
+                                </Col>
+                            </div>
+                        ) : <i></i>
+                    }
+                </TabPane>
+            </Tabs>
+}
 
+// 音频端
+const AudioEnd = props => {
 
-// 通话质量模块
-class UserPanel extends PureComponent {
-    constructor(props) {
-        super(props);
+    // const = 
+    return (<div className={style['end-wrapper']}>
+                <div className={style['user-info']}>user-info</div>
+                <CPU {...props} />
+                <Volume {...props} />
+                {/* { props.end_type == 'sender' ? <SenderVolume /> : <ReceiverVolume />} */}
+                <div >Bit-and-PackLoss</div>
+                { props.end_type == 'receiver' ? <div >Freeze</div> : ''}
+            </div>)
+}
+// 视频端
+const VideoEnd = props => {
+    return (<div className={style['end-wrapper']}>
+                <div >user-info</div>
+                <CPU {...props} />
+                <div >Bit-and-PackLoss</div>
+                <div >Frame Rate</div>
+                { props.end_type == 'receiver' ? <div >Resolution</div> : ''}
+            </div>)
+}
+let data = [
+    {
+        "id": "2038",
+        "peer": 0,
+        "name": "Wrtc Audio Send Input Level",
+        "counter_id": "2038",
+        "data": [
+            [
+                1593420888000,
+                null
+            ],
+            [
+                1593420890000,
+                670
+            ],
+            [
+                1593420892000,
+                670
+            ],
+            [
+                1593420894000,
+                124
+            ],
+            [
+                1593420896000,
+                1873
+            ],
+            [
+                1593420898000,
+                1873
+            ],
+            [
+                1593420900000,
+                57
+            ],
+            [
+                1593420902000,
+                97
+            ],
+            [
+                1593420904000,
+                97
+            ],
+            [
+                1593420906000,
+                48
+            ],
+            [
+                1593420908000,
+                240
+            ],
+            [
+                1593420910000,
+                240
+            ],
+            [
+                1593420912000,
+                1900
+            ],
+            [
+                1593420914000,
+                24
+            ],
+            [
+                1593420916000,
+                24
+            ],
+            [
+                1593420918000,
+                225
+            ],
+            [
+                1593420920000,
+                494
+            ],
+            [
+                1593420922000,
+                494
+            ],
+            [
+                1593420924000,
+                95
+            ],
+            [
+                1593420926000,
+                5
+            ],
+            [
+                1593420928000,
+                5
+            ],
+            [
+                1593420930000,
+                4
+            ],
+            [
+                1593420932000,
+                5
+            ],
+            [
+                1593420934000,
+                5
+            ],
+            [
+                1593420936000,
+                6
+            ],
+            [
+                1593420938000,
+                73
+            ],
+            [
+                1593420940000,
+                73
+            ],
+            [
+                1593420942000,
+                8
+            ],
+            [
+                1593420944000,
+                10
+            ],
+            [
+                1593420946000,
+                10
+            ],
+            [
+                1593420948000,
+                11
+            ],
+            [
+                1593420950000,
+                39
+            ],
+            [
+                1593420952000,
+                39
+            ],
+            [
+                1593420954000,
+                17
+            ],
+            [
+                1593420956000,
+                18
+            ],
+            [
+                1593420958000,
+                18
+            ],
+            [
+                1593420960000,
+                38
+            ],
+            [
+                1593420962000,
+                13
+            ],
+            [
+                1593420964000,
+                13
+            ],
+            [
+                1593420966000,
+                20
+            ],
+            [
+                1593420968000,
+                13
+            ],
+            [
+                1593420970000,
+                13
+            ],
+            [
+                1593420972000,
+                12
+            ],
+            [
+                1593420974000,
+                8
+            ],
+            [
+                1593420976000,
+                8
+            ],
+            [
+                1593420978000,
+                9
+            ],
+            [
+                1593420980000,
+                14
+            ],
+            [
+                1593420982000,
+                14
+            ],
+            [
+                1593420984000,
+                27
+            ],
+            [
+                1593420986000,
+                9
+            ],
+            [
+                1593420988000,
+                9
+            ],
+            [
+                1593420990000,
+                25
+            ],
+            [
+                1593420992000,
+                7
+            ],
+            [
+                1593420994000,
+                7
+            ],
+            [
+                1593420996000,
+                6
+            ],
+            [
+                1593420998000,
+                40
+            ],
+            [
+                1593421000000,
+                40
+            ],
+            [
+                1593421002000,
+                37
+            ],
+            [
+                1593421004000,
+                5
+            ],
+            [
+                1593421006000,
+                5
+            ],
+            [
+                1593421008000,
+                41
+            ],
+            [
+                1593421010000,
+                11
+            ],
+            [
+                1593421012000,
+                11
+            ],
+            [
+                1593421014000,
+                35
+            ],
+            [
+                1593421016000,
+                24
+            ],
+            [
+                1593421018000,
+                24
+            ],
+            [
+                1593421020000,
+                5
+            ],
+            [
+                1593421022000,
+                18
+            ],
+            [
+                1593421024000,
+                18
+            ],
+            [
+                1593421026000,
+                8
+            ],
+            [
+                1593421028000,
+                8
+            ],
+            [
+                1593421030000,
+                8
+            ],
+            [
+                1593421032000,
+                34
+            ],
+            [
+                1593421034000,
+                7
+            ],
+            [
+                1593421036000,
+                7
+            ],
+            [
+                1593421038000,
+                11
+            ],
+            [
+                1593421040000,
+                8
+            ],
+            [
+                1593421042000,
+                8
+            ],
+            [
+                1593421044000,
+                134
+            ],
+            [
+                1593421046000,
+                7
+            ],
+            [
+                1593421048000,
+                7
+            ],
+            [
+                1593421050000,
+                7
+            ],
+            [
+                1593421052000,
+                5
+            ],
+            [
+                1593421054000,
+                5
+            ],
+            [
+                1593421056000,
+                14
+            ],
+            [
+                1593421058000,
+                39
+            ],
+            [
+                1593421060000,
+                39
+            ],
+            [
+                1593421062000,
+                12
+            ],
+            [
+                1593421064000,
+                10
+            ],
+            [
+                1593421066000,
+                10
+            ],
+            [
+                1593421068000,
+                9
+            ],
+            [
+                1593421070000,
+                11
+            ],
+            [
+                1593421072000,
+                11
+            ],
+            [
+                1593421074000,
+                11
+            ],
+            [
+                1593421076000,
+                5
+            ],
+            [
+                1593421078000,
+                5
+            ],
+            [
+                1593421080000,
+                7
+            ],
+            [
+                1593421082000,
+                8
+            ],
+            [
+                1593421084000,
+                8
+            ],
+            [
+                1593421086000,
+                11
+            ],
+            [
+                1593421088000,
+                9
+            ],
+            [
+                1593421090000,
+                9
+            ],
+            [
+                1593421092000,
+                10
+            ],
+            [
+                1593421094000,
+                23
+            ],
+            [
+                1593421096000,
+                23
+            ],
+            [
+                1593421098000,
+                77
+            ],
+            [
+                1593421100000,
+                33
+            ],
+            [
+                1593421102000,
+                33
+            ],
+            [
+                1593421104000,
+                39
+            ],
+            [
+                1593421106000,
+                26
+            ],
+            [
+                1593421108000,
+                26
+            ],
+            [
+                1593421110000,
+                23
+            ],
+            [
+                1593421112000,
+                19
+            ],
+            [
+                1593421114000,
+                19
+            ],
+            [
+                1593421116000,
+                532
+            ],
+            [
+                1593421118000,
+                6
+            ],
+            [
+                1593421120000,
+                6
+            ],
+            [
+                1593421122000,
+                10
+            ],
+            [
+                1593421124000,
+                49
+            ],
+            [
+                1593421126000,
+                49
+            ],
+            [
+                1593421128000,
+                10
+            ],
+            [
+                1593421130000,
+                3
+            ],
+            [
+                1593421132000,
+                3
+            ],
+            [
+                1593421134000,
+                7
+            ],
+            [
+                1593421136000,
+                16
+            ],
+            [
+                1593421138000,
+                16
+            ],
+            [
+                1593421140000,
+                25
+            ],
+            [
+                1593421142000,
+                5
+            ],
+            [
+                1593421144000,
+                5
+            ],
+            [
+                1593421146000,
+                10
+            ],
+            [
+                1593421148000,
+                7
+            ],
+            [
+                1593421150000,
+                7
+            ],
+            [
+                1593421152000,
+                16
+            ],
+            [
+                1593421154000,
+                6
+            ],
+            [
+                1593421156000,
+                6
+            ],
+            [
+                1593421158000,
+                9
+            ],
+            [
+                1593421160000,
+                6
+            ],
+            [
+                1593421162000,
+                6
+            ],
+            [
+                1593421164000,
+                8
+            ],
+            [
+                1593421166000,
+                16
+            ],
+            [
+                1593421168000,
+                16
+            ],
+            [
+                1593421170000,
+                13
+            ],
+            [
+                1593421172000,
+                10
+            ],
+            [
+                1593421174000,
+                10
+            ],
+            [
+                1593421176000,
+                9
+            ],
+            [
+                1593421178000,
+                8
+            ],
+            [
+                1593421180000,
+                8
+            ],
+            [
+                1593421182000,
+                8
+            ],
+            [
+                1593421184000,
+                8
+            ],
+            [
+                1593421186000,
+                8
+            ],
+            [
+                1593421188000,
+                9
+            ],
+            [
+                1593421190000,
+                6
+            ],
+            [
+                1593421192000,
+                6
+            ],
+            [
+                1593421194000,
+                9
+            ],
+            [
+                1593421196000,
+                5
+            ],
+            [
+                1593421198000,
+                5
+            ],
+            [
+                1593421200000,
+                7
+            ],
+            [
+                1593421202000,
+                44
+            ],
+            [
+                1593421204000,
+                44
+            ],
+            [
+                1593421206000,
+                9
+            ],
+            [
+                1593421208000,
+                10
+            ],
+            [
+                1593421210000,
+                10
+            ],
+            [
+                1593421212000,
+                8
+            ],
+            [
+                1593421214000,
+                39
+            ]
+        ],
+        "type": "line",
+        "color": "#51BEF0",
+        "unit": "",
+        "borderWidth": 0,
+        "fillOpacity": 0.2,
+        "zIndex": -1,
+        "grouping": true,
+        "maxPointWidth": 1,
+        "marker": {
+            "enabled": false
+        },
+        "yAxis": 0,
+        "max": 1900
+    }
+]
 
-        this.state = {
-            user: this.props.user,
-            user_list: this.props.user_list,
-            confrId: this.props.confrId,
-            event_list: [],
-            qoe: []
-        }
+const HOCwarpper = (WrappedComponent) => {
+    
+    return <WrappedComponent />
+}
+
+// 设备状态
+const CPU = props => {
+
+    const [data,setData] = useState([])
+    let chartOptions = {
+        title:{
+            text:'设备状态'
+        },
+        series: data
     }
 
-    componentDidMount() {
-        let { confrId } = this.state;
-        let { memId } = this.state.user;
+    const context = useContext(E2eContext);
 
-        let _this = this;
-        get_event_list(confrId, memId).then(response => {
-            _this.setState({
-                event_list: response.data
-            })
-        });
+    let confrId = context.confrId,
+        endType = props.end_type;
+    let memId = endType == 'sender' ? context.from_memId : context.to_memId;
 
-        // 通话质量数据
-        get_qoe(confrId, memId).then(response => {
-            _this.setState({
-                qoe: response
-            })
+    useEffect(() => {
+        get_cpu(confrId, endType, memId).then(response => {
+            setData(response.data)
+        }).catch(error => {
+            console.error('get_cpu', error);
         })
-    }
+    }, []);
+    
+    
+    return <ChartsWrapper chartOptions={chartOptions} />
+}
+// 音量
+const Volume = props => {
 
-    // 进入 e2e 详情
-    enter_details(from_memId, to_memId) {
-        if(
-            !from_memId ||
-            !to_memId
-        ) {
-            return
-        }
-
-        
-    }
-    render() {
-        let { 
-            user, 
-            user_list, 
-            event_list,
-            qoe
-        } = this.state;
-
-        let { conference_info } = this.props;
-//         deviceInfo: "huawei/tas-an00/tas-an00/hwtas/29/4.14.116"
-// dur: 200
-// endReason: 1
-// exitTs: 1591238240
-// ip: "ip地址"
-// joinTs: 1591238040
-// memId: "4789321"
-// memName: "sqx1"
-// net: "Wi-Fi"
-// os: "Android"
-// osVersion: ""
-// role: 3
-// sdkVersion: "2.9.2"
-// sessionId: ""
-        return <Col span={12} className={style['user-panel']}>
-            <div className={style["user-info"]}>
-                <h2 style={{display:'inline-block'}}>{user.memId}</h2>
-                <span>{user.os}</span>
-                <span>{user.sdkVersion}</span>
-                <Button onClick={()=>this.enter_details()}></Button>
-            </div>
-            <Chart { ...{qoe, conference_info}}/>
-            <EventList { ...{event_list, conference_info}}/>
-        </Col>
-    }
 }
 
 
-// 图表
-class Chart extends PureComponent {
-    render() {
-        if(!this.props.conference_info) {
-            return ''
-        }
-        let { createdTs, destroyedTs } = this.props.conference_info
-        
-      const options = {
+const SenderVolume = () => {
+    let chartOptions = {
+        title:{
+            text:'音量'
+        },
+        series: data
+    }
+    return <ChartsWrapper chartOptions={chartOptions} />
+}
+const ReceiverVolume = () => {
+    let chartOptions = {
+        title:{
+            text:'接收音量'
+        },
+        series: data
+    }
+    return <ChartsWrapper chartOptions={chartOptions} />
+}
+
+
+
+// 将highcharts 包装一下
+const ChartsWrapper = props => {
+    const context = useContext(E2eContext);
+    
+    if(!context.conference_info[0]) { // 没拿到会议信息之前，不执行
+        return <i></i>
+    }
+    const { createdTs, destroyedTs } = context.conference_info[0]
+
+    const options = {
         chart: {
           zoomType: "x",
-          height:200
+          height:191
         },
-        legend: {
-            enabled: false
-        },
+        
         credits: {
             enabled: false
         },
@@ -183,37 +920,30 @@ class Chart extends PureComponent {
         xAxis: {
             type:"datetime",
             tickInterval: 60000,
-            // startOnTick: true,
-            // endOnTick: true,
-            // labels: {
-            //     formatter: function() {
-            //         let date = new Date(this.value);
-            //         return `${date.getHours()} : ${date.getMinutes()}`
-            //     }
-            // }
             min: createdTs*1000,
             max: destroyedTs*1000,
         },
         title: {
-            text: null
+            align:'left',
+            style: {
+                fontSize: '14px'
+            }
         },
         yAxis: {
           title: {
             text: null // y 轴标题
           },
-          labels: {
-            formatter: function() {
-              return Math.abs(this.value) + "kbps";
-            }
-          },
-            min: -120,  //最小
-            tickInterval: 120, //步长
-            max:840,//最大
+        //   labels: {
+        //     formatter: function() {
+        //       return Math.abs(this.value) + "kbps";
+        //     }
+        //   },
+            // min: -120,  //最小
+            // tickInterval: 120, //步长
+            // max:840,//最大
             gridLineWidth: 0,
             tickWidth:1,
-            plotLines:[{
-                value:0
-            }]
+            
         },
         tooltip: {
           shared: true,
@@ -224,111 +954,40 @@ class Chart extends PureComponent {
             }
           ]
         },
-        series: this.props.qoe
-      };
-      return (
-        <div className={style['chart']}>
-          <HighchartsReact highcharts={Highcharts} options={options} />
-        </div>
-      );
-    }
-}
+    };
 
-// 事件列表
-class EventList extends PureComponent {
-    constructor(props){
-        super(props);
+    // test ...object 
+        // 深合并对象
+        // 遇到相同元素级属性，以后者（main）为准
+        // 不返还新Object，而是main改变
+        function deepAssignObj (source, target) {
 
-        this.state = {
-            event_list: this.props.event_list,
-            conference_info: this.props.conference_info
-        }
-    }
-    static getDerivedStateFromProps(props) {
-
-        return {
-            event_list: props.event_list,
-            conference_info: props.conference_info
-        };
-    }
-    
-
-    // 画事件柱子
-    /*
-    * 平分 100份
-    *
-    *
-    */ 
-
-    // 传入单个数据，得到在progress-par 上的位置
-    get_position(data) {
-        if(
-            !data ||
-            !data.ts
-        ) {
-            return
-        }
-
-        let {
-            dur,
-            createdTs
-        } = this.state.conference_info;
-
-        let { ts } = data; //事件的时间戳
-        // (当前时间戳 - 会议开始时间)/总会议时长 --- 计算在会议中的位置
-        console.log('ts',ts,createdTs,dur);
-        
-        let left = Math.round(((ts - (createdTs*1000))/(dur*1000))*100);
-
-        let position_info = {
-            left,
-
-        }
-        return position_info
-    }
-
-    // 组合 column 和 popover 
-    combination_column_and_popover() {
-        let { event_list } = this.state;
-
-        let _this = this;
-        let columns = {}; // 以计算的位置为 key
-        event_list.map(item => {
-            let position = _this.get_position(item);
-
-            let { left } = position;
-            if(!columns[left]){ // 不存在 就定义一个 array
-                columns[left] = { event_list: []}
+            // 附上工具
+            function isJSON(target) {
+                return typeof target == "object" && target.constructor == Object;
             }
-            columns[left].event_list.push(item)
+
+            for (var key in source) {
+                if (target[key] === undefined) {  // 不冲突的，直接赋值
+                    target[key] = source[key];
+                    continue;
+                }
             
-        })
-        return columns
-    }
-    get_event_el() {
-        let columns = this.combination_column_and_popover()
+                // 冲突了，如果是Object，看看有么有不冲突的属性
+                // 不是Object 则以main为主，忽略即可。故不需要else
+                if (isJSON(source[key])) {
+                    deepAssignObj(source[key], target[key]);  // 严格模式，arguments.callee 递归调用报错 
+                }
+            }
+        }
 
-        let columns_el = Object.keys(columns).map((columns_key, index) => {
+        deepAssignObj(props.chartOptions,options) // 深度合并对象
 
-            let popover_el = columns[columns_key].event_list.map(item => <div>{item.evt}</div>);
 
-            return <Popover content={popover_el} title="Title" trigger="click">
-                        <div 
-                            key={index}
-                            className={style['event-column']} 
-                            style={{left:(columns_key + '%'),height:'50%'}}>
-                        </div>
-                    </Popover>
-        })
-        
-        return <div className={style['event-progress-container']}>{columns_el}</div>
-    }
-    render() {
 
-        return <div className={style['event-list']}>
-                    { this.get_event_el() }
-                    <div className={style['progress-par']}></div>
-                </div>
-    }
+
+    return <HighchartsReact highcharts={Highcharts} options={options} />
 }
+
+
 export default E2e;
