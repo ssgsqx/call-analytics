@@ -19,8 +19,19 @@ import { get_by_confrId } from '../../services/rtc-analytics/conferences'
 import { 
     get_users
 } from '../../services/rtc-analytics/conference';
+
+
 import { 
-    get_cpu
+    get_cpu,
+    get_captured_volume,
+    get_play_volume,
+    get_audio_up,
+    get_audio_down,
+    get_video_up,
+    get_video_down,
+    get_send_fps,
+    get_receive_fps,
+    get_resolution
 } from '../../services/rtc-analytics/e2e';
 
 const E2eContext = React.createContext();
@@ -83,7 +94,7 @@ class E2e extends PureComponent {
     }
 
     return (
-      <div className={style.wrapper}>
+      <div className={style['e2e-wrapper']}>
         <ConferenceInfo data={conference_info} loading={conference_info_table_loading}/>
         <UserList data={user_list} loading={user_list_table_loading} />
         
@@ -107,7 +118,7 @@ const Details = () => {
                     {/* 切换 tab 重新渲染 */}
                     { current_tab_key == 'audio' ? 
                         (
-                            <div>
+                            <div className={style['tab-pane-wrapper']}>
                                 <Col span={12} >
                                     <AudioEnd end_type='sender'/>
                                 </Col>
@@ -121,7 +132,7 @@ const Details = () => {
                 <TabPane tab="video" key="video">
                     { current_tab_key == 'video' ? 
                         (
-                            <div>
+                            <div className={style['tab-pane-wrapper']}>
                                 <Col span={12} >
                                     <VideoEnd  end_type='sender'/>
                                 </Col>
@@ -143,8 +154,7 @@ const AudioEnd = props => {
                 <div className={style['user-info']}>user-info</div>
                 <CPU {...props} />
                 <Volume {...props} />
-                {/* { props.end_type == 'sender' ? <SenderVolume /> : <ReceiverVolume />} */}
-                <div >Bit-and-PackLoss</div>
+                <BitAndPackLoss stream_type='audio'{...props} />
                 { props.end_type == 'receiver' ? <div >Freeze</div> : ''}
             </div>)
 }
@@ -153,694 +163,10 @@ const VideoEnd = props => {
     return (<div className={style['end-wrapper']}>
                 <div >user-info</div>
                 <CPU {...props} />
-                <div >Bit-and-PackLoss</div>
-                <div >Frame Rate</div>
-                { props.end_type == 'receiver' ? <div >Resolution</div> : ''}
+                <BitAndPackLoss stream_type='video'{...props} />
+                <FrameRate {...props} />
+                { props.end_type == 'receiver' ? <Resolution /> : ''}
             </div>)
-}
-let data = [
-    {
-        "id": "2038",
-        "peer": 0,
-        "name": "Wrtc Audio Send Input Level",
-        "counter_id": "2038",
-        "data": [
-            [
-                1593420888000,
-                null
-            ],
-            [
-                1593420890000,
-                670
-            ],
-            [
-                1593420892000,
-                670
-            ],
-            [
-                1593420894000,
-                124
-            ],
-            [
-                1593420896000,
-                1873
-            ],
-            [
-                1593420898000,
-                1873
-            ],
-            [
-                1593420900000,
-                57
-            ],
-            [
-                1593420902000,
-                97
-            ],
-            [
-                1593420904000,
-                97
-            ],
-            [
-                1593420906000,
-                48
-            ],
-            [
-                1593420908000,
-                240
-            ],
-            [
-                1593420910000,
-                240
-            ],
-            [
-                1593420912000,
-                1900
-            ],
-            [
-                1593420914000,
-                24
-            ],
-            [
-                1593420916000,
-                24
-            ],
-            [
-                1593420918000,
-                225
-            ],
-            [
-                1593420920000,
-                494
-            ],
-            [
-                1593420922000,
-                494
-            ],
-            [
-                1593420924000,
-                95
-            ],
-            [
-                1593420926000,
-                5
-            ],
-            [
-                1593420928000,
-                5
-            ],
-            [
-                1593420930000,
-                4
-            ],
-            [
-                1593420932000,
-                5
-            ],
-            [
-                1593420934000,
-                5
-            ],
-            [
-                1593420936000,
-                6
-            ],
-            [
-                1593420938000,
-                73
-            ],
-            [
-                1593420940000,
-                73
-            ],
-            [
-                1593420942000,
-                8
-            ],
-            [
-                1593420944000,
-                10
-            ],
-            [
-                1593420946000,
-                10
-            ],
-            [
-                1593420948000,
-                11
-            ],
-            [
-                1593420950000,
-                39
-            ],
-            [
-                1593420952000,
-                39
-            ],
-            [
-                1593420954000,
-                17
-            ],
-            [
-                1593420956000,
-                18
-            ],
-            [
-                1593420958000,
-                18
-            ],
-            [
-                1593420960000,
-                38
-            ],
-            [
-                1593420962000,
-                13
-            ],
-            [
-                1593420964000,
-                13
-            ],
-            [
-                1593420966000,
-                20
-            ],
-            [
-                1593420968000,
-                13
-            ],
-            [
-                1593420970000,
-                13
-            ],
-            [
-                1593420972000,
-                12
-            ],
-            [
-                1593420974000,
-                8
-            ],
-            [
-                1593420976000,
-                8
-            ],
-            [
-                1593420978000,
-                9
-            ],
-            [
-                1593420980000,
-                14
-            ],
-            [
-                1593420982000,
-                14
-            ],
-            [
-                1593420984000,
-                27
-            ],
-            [
-                1593420986000,
-                9
-            ],
-            [
-                1593420988000,
-                9
-            ],
-            [
-                1593420990000,
-                25
-            ],
-            [
-                1593420992000,
-                7
-            ],
-            [
-                1593420994000,
-                7
-            ],
-            [
-                1593420996000,
-                6
-            ],
-            [
-                1593420998000,
-                40
-            ],
-            [
-                1593421000000,
-                40
-            ],
-            [
-                1593421002000,
-                37
-            ],
-            [
-                1593421004000,
-                5
-            ],
-            [
-                1593421006000,
-                5
-            ],
-            [
-                1593421008000,
-                41
-            ],
-            [
-                1593421010000,
-                11
-            ],
-            [
-                1593421012000,
-                11
-            ],
-            [
-                1593421014000,
-                35
-            ],
-            [
-                1593421016000,
-                24
-            ],
-            [
-                1593421018000,
-                24
-            ],
-            [
-                1593421020000,
-                5
-            ],
-            [
-                1593421022000,
-                18
-            ],
-            [
-                1593421024000,
-                18
-            ],
-            [
-                1593421026000,
-                8
-            ],
-            [
-                1593421028000,
-                8
-            ],
-            [
-                1593421030000,
-                8
-            ],
-            [
-                1593421032000,
-                34
-            ],
-            [
-                1593421034000,
-                7
-            ],
-            [
-                1593421036000,
-                7
-            ],
-            [
-                1593421038000,
-                11
-            ],
-            [
-                1593421040000,
-                8
-            ],
-            [
-                1593421042000,
-                8
-            ],
-            [
-                1593421044000,
-                134
-            ],
-            [
-                1593421046000,
-                7
-            ],
-            [
-                1593421048000,
-                7
-            ],
-            [
-                1593421050000,
-                7
-            ],
-            [
-                1593421052000,
-                5
-            ],
-            [
-                1593421054000,
-                5
-            ],
-            [
-                1593421056000,
-                14
-            ],
-            [
-                1593421058000,
-                39
-            ],
-            [
-                1593421060000,
-                39
-            ],
-            [
-                1593421062000,
-                12
-            ],
-            [
-                1593421064000,
-                10
-            ],
-            [
-                1593421066000,
-                10
-            ],
-            [
-                1593421068000,
-                9
-            ],
-            [
-                1593421070000,
-                11
-            ],
-            [
-                1593421072000,
-                11
-            ],
-            [
-                1593421074000,
-                11
-            ],
-            [
-                1593421076000,
-                5
-            ],
-            [
-                1593421078000,
-                5
-            ],
-            [
-                1593421080000,
-                7
-            ],
-            [
-                1593421082000,
-                8
-            ],
-            [
-                1593421084000,
-                8
-            ],
-            [
-                1593421086000,
-                11
-            ],
-            [
-                1593421088000,
-                9
-            ],
-            [
-                1593421090000,
-                9
-            ],
-            [
-                1593421092000,
-                10
-            ],
-            [
-                1593421094000,
-                23
-            ],
-            [
-                1593421096000,
-                23
-            ],
-            [
-                1593421098000,
-                77
-            ],
-            [
-                1593421100000,
-                33
-            ],
-            [
-                1593421102000,
-                33
-            ],
-            [
-                1593421104000,
-                39
-            ],
-            [
-                1593421106000,
-                26
-            ],
-            [
-                1593421108000,
-                26
-            ],
-            [
-                1593421110000,
-                23
-            ],
-            [
-                1593421112000,
-                19
-            ],
-            [
-                1593421114000,
-                19
-            ],
-            [
-                1593421116000,
-                532
-            ],
-            [
-                1593421118000,
-                6
-            ],
-            [
-                1593421120000,
-                6
-            ],
-            [
-                1593421122000,
-                10
-            ],
-            [
-                1593421124000,
-                49
-            ],
-            [
-                1593421126000,
-                49
-            ],
-            [
-                1593421128000,
-                10
-            ],
-            [
-                1593421130000,
-                3
-            ],
-            [
-                1593421132000,
-                3
-            ],
-            [
-                1593421134000,
-                7
-            ],
-            [
-                1593421136000,
-                16
-            ],
-            [
-                1593421138000,
-                16
-            ],
-            [
-                1593421140000,
-                25
-            ],
-            [
-                1593421142000,
-                5
-            ],
-            [
-                1593421144000,
-                5
-            ],
-            [
-                1593421146000,
-                10
-            ],
-            [
-                1593421148000,
-                7
-            ],
-            [
-                1593421150000,
-                7
-            ],
-            [
-                1593421152000,
-                16
-            ],
-            [
-                1593421154000,
-                6
-            ],
-            [
-                1593421156000,
-                6
-            ],
-            [
-                1593421158000,
-                9
-            ],
-            [
-                1593421160000,
-                6
-            ],
-            [
-                1593421162000,
-                6
-            ],
-            [
-                1593421164000,
-                8
-            ],
-            [
-                1593421166000,
-                16
-            ],
-            [
-                1593421168000,
-                16
-            ],
-            [
-                1593421170000,
-                13
-            ],
-            [
-                1593421172000,
-                10
-            ],
-            [
-                1593421174000,
-                10
-            ],
-            [
-                1593421176000,
-                9
-            ],
-            [
-                1593421178000,
-                8
-            ],
-            [
-                1593421180000,
-                8
-            ],
-            [
-                1593421182000,
-                8
-            ],
-            [
-                1593421184000,
-                8
-            ],
-            [
-                1593421186000,
-                8
-            ],
-            [
-                1593421188000,
-                9
-            ],
-            [
-                1593421190000,
-                6
-            ],
-            [
-                1593421192000,
-                6
-            ],
-            [
-                1593421194000,
-                9
-            ],
-            [
-                1593421196000,
-                5
-            ],
-            [
-                1593421198000,
-                5
-            ],
-            [
-                1593421200000,
-                7
-            ],
-            [
-                1593421202000,
-                44
-            ],
-            [
-                1593421204000,
-                44
-            ],
-            [
-                1593421206000,
-                9
-            ],
-            [
-                1593421208000,
-                10
-            ],
-            [
-                1593421210000,
-                10
-            ],
-            [
-                1593421212000,
-                8
-            ],
-            [
-                1593421214000,
-                39
-            ]
-        ],
-        "type": "line",
-        "color": "#51BEF0",
-        "unit": "",
-        "borderWidth": 0,
-        "fillOpacity": 0.2,
-        "zIndex": -1,
-        "grouping": true,
-        "maxPointWidth": 1,
-        "marker": {
-            "enabled": false
-        },
-        "yAxis": 0,
-        "max": 1900
-    }
-]
-
-const HOCwarpper = (WrappedComponent) => {
-    
-    return <WrappedComponent />
 }
 
 // 设备状态
@@ -873,30 +199,198 @@ const CPU = props => {
 }
 // 音量
 const Volume = props => {
+    const [data,setData] = useState([]);
 
-}
-
-
-const SenderVolume = () => {
     let chartOptions = {
         title:{
-            text:'音量'
+            text: props.end_type == 'sender' ? '音频采集音量' : '音频播放音量'
         },
         series: data
     }
+
+    const context = useContext(E2eContext);
+
+    useEffect(() => {
+        let confrId = context.confrId,
+            endType = props.end_type,
+            memId;
+
+        if(endType == 'sender') {
+            memId = context.from_memId;
+            get_captured_volume(confrId, memId).then(response => { //发送端采集音量
+                setData(response.data)
+            }).catch(error => {
+                console.error('get_captured_volume', error);
+            })
+        } else {
+            memId = context.to_memId;
+            get_play_volume(confrId, memId).then(response => {  //接收端播放音量
+                setData(response.data)
+            }).catch(error => {
+                console.error('get_play_volume', error);
+            })
+        }
+       
+    }, []);
+    
+    
     return <ChartsWrapper chartOptions={chartOptions} />
 }
-const ReceiverVolume = () => {
+
+// audio video bit and pack_loss
+const BitAndPackLoss = props => {
+    const [data,setData] = useState([]);
+
+    let {
+        stream_type,
+        end_type
+    } = props;
+
+    // 区分属于哪种图表
+    let chart_type;
+    if( stream_type == 'audio' ) {
+        if(end_type == 'sender') {
+            chart_type = 'audio_sender'
+        }else {
+            chart_type = 'audio_receiver'
+        }
+    } else if( stream_type == 'video' ) {
+        if(end_type == 'sender') {
+            chart_type = 'video_sender'
+        }else {
+            chart_type = 'video_receiver'
+        }
+    }
+
+    let chart_title_texts = {
+        'audio_sender': '音频上行和网络丢包',
+        'audio_receiver': '音频下行和端到端丢包',
+        'video_sender': '视频频上行和网络丢包',
+        'video_receiver': '视频下行和端对端丢包'
+    };
+
     let chartOptions = {
         title:{
-            text:'接收音量'
+            text: chart_title_texts[chart_type]
         },
         series: data
     }
+    const context = useContext(E2eContext);
+    // 请求数据
+    useEffect(() => {
+        let confrId = context.confrId,
+            memId = props.end_type == 'sender' ? context.from_memId : context.to_memId;
+
+        if(chart_type == 'audio_sender') { // 四种类型合到一起
+            get_audio_up(confrId, memId).then(response => {
+                setData(response.data)
+            }).catch(error => {
+                console.error('get bit error', error);
+            });
+        } else if(chart_type == 'audio_receiver') {
+            get_audio_down(confrId, memId).then(response => {
+                setData(response.data)
+            }).catch(error => {
+                console.error('get bit error', error);
+            });
+        } else if(chart_type == 'video_sender') {
+            get_video_up(confrId, memId).then(response => {
+                setData(response.data)
+            }).catch(error => {
+                console.error('get bit error', error);
+            });
+        } else if(chart_type == 'video_receiver') {
+            get_video_down(confrId, memId).then(response => {
+                setData(response.data)
+            }).catch(error => {
+                console.error('get bit error', error);
+            });
+        }
+        
+    },[])
+
     return <ChartsWrapper chartOptions={chartOptions} />
 }
 
+// 音频解码卡顿（待定）
+const AudioFreeze = props => {
+    
+}
 
+// 视频帧率
+const FrameRate = props => {
+    const [data,setData] = useState([]);
+
+    let chartOptions = {
+        title:{
+            text: props.end_type == 'sender' ? '视频发送帧率' : '视频帧率和卡顿'
+        },
+        series: data,
+        plotOptions: {
+            line:{
+                threshold: 4,
+                negativeColor: 'red'
+            }
+        },
+        yAxis:{
+            min:0,
+            max:20
+        }
+    }
+    const context = useContext(E2eContext);
+    // 请求数据
+    useEffect(() => {
+        let confrId = context.confrId,
+            endType = props.end_type,
+            memId;
+
+        if(endType == 'sender') {
+            memId = context.from_memId;
+            get_send_fps(confrId, memId).then(response => { //发送端帧率
+                setData(response.data)
+            }).catch(error => {
+                console.error('get_send_fps', error);
+            })
+        } else {
+            memId = context.to_memId;
+            get_receive_fps(confrId, memId).then(response => {  //接收端帧率和卡顿
+                setData(response.data)
+            }).catch(error => {
+                console.error('get_receive_fps', error);
+            })
+        }
+    },[])
+    return <ChartsWrapper chartOptions={chartOptions} />
+}
+
+// 分辨率
+const Resolution = () => {
+    const [data,setData] = useState([]);
+
+    let chartOptions = {
+        title:{
+            text: '视频接收分辨率'
+        },
+        plotOptions: {
+            areaspline: {
+                fillOpacity:0.2,
+                lineWidth:1
+            }
+        },
+        series: data,
+    }
+    useEffect(() => {
+        let confrId = context.confrId,
+            memId = context.to_memId;
+        get_resolution(confrId, memId).then(response => {
+            setData(response.data)
+        }).catch(error => {
+            console.error('get_resolution', error);
+        })
+    }, [])
+    const context = useContext(E2eContext);
+    return <ChartsWrapper chartOptions={chartOptions} />
+}
 
 // 将highcharts 包装一下
 const ChartsWrapper = props => {
@@ -916,7 +410,11 @@ const ChartsWrapper = props => {
         credits: {
             enabled: false
         },
-        
+        plotOptions: {
+            line: {
+                lineWidth:1
+            }
+        },
         xAxis: {
             type:"datetime",
             tickInterval: 60000,
@@ -943,7 +441,6 @@ const ChartsWrapper = props => {
             // max:840,//最大
             gridLineWidth: 0,
             tickWidth:1,
-            
         },
         tooltip: {
           shared: true,
@@ -988,6 +485,5 @@ const ChartsWrapper = props => {
 
     return <HighchartsReact highcharts={Highcharts} options={options} />
 }
-
 
 export default E2e;

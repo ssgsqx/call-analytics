@@ -54,26 +54,29 @@ class Conference extends PureComponent {
   render() {
     let { 
         confrId,
-      basic_info, 
-      basic_info_table_loading,
-      user_list,
-      user_list_table_loading
+        basic_info, 
+        basic_info_table_loading,
+        user_list,
+        user_list_table_loading
     } = this.state;
     return (
       <div className={style.wrapper}>
         <ConferenceInfo data={basic_info} loading={basic_info_table_loading}/>
         <UserList data={user_list} loading={user_list_table_loading} />
-        {/* 通话质量面板 */}
 
-        { user_list.map((item,index) => (
-            <UserPanel 
-                user={item} 
-                user_list={user_list} 
-                key={index}
-                confrId={confrId}
-                conference_info={basic_info[0]}
-            />
-        )) }
+        {/* 通话质量面板 */}
+        <Row gutter={[16,16]}>
+
+            { user_list.map((item,index) => (
+                <UserPanel 
+                    user={item} 
+                    user_list={user_list} 
+                    key={index}
+                    confrId={confrId}
+                    conference_info={basic_info[0]}
+                />
+            )) }
+        </Row>
 
       </div>
     );
@@ -140,7 +143,6 @@ class UserPanel extends PureComponent {
         let { confrId } = this.state;
         let { memId:to_memId } = this.state.user;
 
-        console.log('get_to_e2e_action_el', can_choose_users);
         
         if(can_choose_users.length == 0) {
             return ''
@@ -159,15 +161,17 @@ class UserPanel extends PureComponent {
             <div>
                 {can_choose_users.map((item,index) => {
                     let from_memId = item;
-                    return <Link 
-                                key={index}
-                                to={`/call-analytics/e2e/${confrId}/${from_memId}/${to_memId}`}
-                                target='_blank'>{from_memId}</Link>
+                    return <div key={index} >
+                                <Link 
+                                    onMouseEnter={() => console.log(from_memId)}
+                                    to={`/call-analytics/e2e/${confrId}/${from_memId}/${to_memId}`}
+                                    target='_blank'>{from_memId}</Link>
+                            </div>
                 })}
             </div>
         )
-        return  <Popover content={content} title="选择发送端">
-                    <Button type="primary">查看详情</Button>
+        return  <Popover content={content} title="选择发送端" trigger="click">
+                    <Button style={{float:'right'}} shape="round">查看详情</Button>
                 </Popover>
         
 
@@ -181,30 +185,18 @@ class UserPanel extends PureComponent {
         } = this.state;
 
         let { conference_info } = this.props;
-//         deviceInfo: "huawei/tas-an00/tas-an00/hwtas/29/4.14.116"
-// dur: 200
-// endReason: 1
-// exitTs: 1591238240
-// ip: "ip地址"
-// joinTs: 1591238040
-// memId: "4789321"
-// memName: "sqx1"
-// net: "Wi-Fi"
-// os: "Android"
-// osVersion: ""
-// role: 3
-// sdkVersion: "2.9.2"
-// sessionId: ""
-        return <Col span={12} className={style['user-panel']}>
-            <div className={style["user-info"]}>
-                <h2 style={{display:'inline-block'}}>{user.memId}</h2>
-                <span>{user.os}</span>
-                <span>{user.sdkVersion}</span>
-                { this.get_to_e2e_action_el() }
-            </div>
-            <Chart { ...{qoe, conference_info}}/>
-            <EventList { ...{event_list, conference_info}}/>
-        </Col>
+        return <Col span={12}>
+                    <div className={style['user-panel']}>
+                        <div className={style["user-info"]}>
+                            <h2 style={{display:'inline-block'}}>{user.memId}</h2>
+                            <span>{user.os}</span>
+                            <span>{user.sdkVersion}</span>
+                            { this.get_to_e2e_action_el() }
+                        </div>
+                        <Chart { ...{qoe, conference_info}}/>
+                        <EventList { ...{event_list, conference_info}}/>
+                    </div>
+                </Col>
     }
 }
 
@@ -229,18 +221,14 @@ class Chart extends PureComponent {
         credits: {
             enabled: false
         },
-        
+        plotOptions: {
+            areaspline: {
+                lineWidth:1
+            }
+        },
         xAxis: {
             type:"datetime",
             tickInterval: 60000,
-            // startOnTick: true,
-            // endOnTick: true,
-            // labels: {
-            //     formatter: function() {
-            //         let date = new Date(this.value);
-            //         return `${date.getHours()} : ${date.getMinutes()}`
-            //     }
-            // }
             min: createdTs*1000,
             max: destroyedTs*1000,
         },

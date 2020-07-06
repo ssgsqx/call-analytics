@@ -39,21 +39,21 @@ class SearchParams extends PureComponent {
       <Form layout="inline" onSubmit={this.handleSubmit}>
         <Row gutter={8}>
           <Col span={7}>
-            <RangePicker style={{ width: "100%" }} />
+            <RangePicker style={{ width: "100%" }}  size="large" />
           </Col>
 
           <Col span={7}>
-            <InputGroup compact>
-              <Select defaultValue="cname" style={{ width: "35%" }}>
+            <InputGroup compact size="large" >
+              <Select defaultValue="cname" style={{ width: "35%" }} size="large" >
                 <Option value="cname">频道名称</Option>
                 <Option value="uid">User</Option>
               </Select>
-              <Input defaultValue="" style={{ width: "65%" }} />
+              <Input defaultValue="" style={{ width: "65%" }} size="large" />
             </InputGroup>
           </Col>
 
           <Col span={7}>
-            <Select defaultValue="all">
+            <Select defaultValue="all" size="large" >
               <Option value="all">全部</Option>
               <Option value="end">通话结束</Option>
               <Option value="in_progress">进行中</Option>
@@ -61,7 +61,7 @@ class SearchParams extends PureComponent {
           </Col>
 
           <Col span={3}>
-            <Button type="primary">搜索通话</Button>
+            <Button type="primary" size="large" >搜索通话</Button>
           </Col>
         </Row>
       </Form>
@@ -148,6 +148,7 @@ class List extends PureComponent {
         columns={columns}
         size="small"
         loading={loading}
+        className={style['conference-list']}
       />
     );
   }

@@ -64,6 +64,10 @@ export default function UserList(props) {
       ellipsis: true
     }
   ];
+  let style = {
+      margin:'18px 0',
+      background:'#fff'
+  }
   return (
     <Table
       dataSource={data}
@@ -71,6 +75,7 @@ export default function UserList(props) {
       pagination={false}
       loading={loading}
       size="small"
+      style={style}
     />
   );
 }

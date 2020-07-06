@@ -28,5 +28,6 @@
             columns={columns} 
             pagination={false}
             loading={loading} 
+            style={{background:'#fff'}}
           />;
 }
