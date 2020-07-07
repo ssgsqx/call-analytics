@@ -161,7 +161,7 @@ const AudioEnd = props => {
 // 视频端
 const VideoEnd = props => {
     return (<div className={style['end-wrapper']}>
-                <div >user-info</div>
+                <div className={style['user-info']}>user-info</div>
                 <CPU {...props} />
                 <BitAndPackLoss stream_type='video'{...props} />
                 <FrameRate {...props} />
