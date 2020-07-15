@@ -14,7 +14,6 @@ import {
     Tabs
 } from "antd";
 
-
 import { get_by_confrId } from '../../services/rtc-analytics/conferences'
 import { 
     get_users
@@ -68,7 +67,7 @@ class E2e extends PureComponent {
 
       get_conference_info({ confrId }).then(response => {
           _this.setState({
-            conference_info: response,
+            conference_info: response.data,
             conference_info_table_loading: false
           })
       }).catch(error => console.error(error))
@@ -107,13 +106,13 @@ class E2e extends PureComponent {
 }
 // audio video 区域
 const Details = () => {
-    const [current_tab_key, set_current_tab_key] = useState('audio');
+    const [current_tab_key, set_current_tab_key] = useState('video');
     
     const change = key => {
         set_current_tab_key(key); // modify state.current_tab_key, clear component cache
     }
     const { TabPane } = Tabs;
-    return <Tabs onChange={change} type="card">
+    return <Tabs onChange={change} type="card" defaultActiveKey='video'>
                 <TabPane tab="audio" key="audio">
                     {/* 切换 tab 重新渲染 */}
                     { current_tab_key == 'audio' ? 
@@ -149,9 +148,13 @@ const Details = () => {
 // 音频端
 const AudioEnd = props => {
 
-    // const = 
+    const context = useContext(E2eContext);
+
+    let endType = props.end_type;
+    let memId = endType == 'sender' ? context.from_memId : context.to_memId;
+
     return (<div className={style['end-wrapper']}>
-                <div className={style['user-info']}>user-info</div>
+                <div className={style['user-info']}>{memId}</div>
                 <CPU {...props} />
                 <Volume {...props} />
                 <BitAndPackLoss stream_type='audio'{...props} />
@@ -160,8 +163,13 @@ const AudioEnd = props => {
 }
 // 视频端
 const VideoEnd = props => {
+    const context = useContext(E2eContext);
+
+    let endType = props.end_type;
+    let memId = endType == 'sender' ? context.from_memId : context.to_memId;
+
     return (<div className={style['end-wrapper']}>
-                <div className={style['user-info']}>user-info</div>
+                <div className={style['user-info']}>{memId}</div>
                 <CPU {...props} />
                 <BitAndPackLoss stream_type='video'{...props} />
                 <FrameRate {...props} />
@@ -187,7 +195,7 @@ const CPU = props => {
     let memId = endType == 'sender' ? context.from_memId : context.to_memId;
 
     useEffect(() => {
-        get_cpu(confrId, endType, memId).then(response => {
+        get_cpu(confrId, memId).then(response => {
             setData(response.data)
         }).catch(error => {
             console.error('get_cpu', error);
@@ -326,16 +334,16 @@ const FrameRate = props => {
             text: props.end_type == 'sender' ? '视频发送帧率' : '视频帧率和卡顿'
         },
         series: data,
-        plotOptions: {
-            line:{
-                threshold: 4,
-                negativeColor: 'red'
-            }
-        },
-        yAxis:{
-            min:0,
-            max:20
-        }
+        // plotOptions: {
+        //     line:{
+        //         threshold: 4,
+        //         negativeColor: 'red'
+        //     }
+        // },
+        // yAxis:{
+        //     min:0,
+        //     max:20
+        // }
     }
     const context = useContext(E2eContext);
     // 请求数据
@@ -399,7 +407,7 @@ const ChartsWrapper = props => {
     if(!context.conference_info[0]) { // 没拿到会议信息之前，不执行
         return <i></i>
     }
-    const { createdTs, destroyedTs } = context.conference_info[0]
+    const { createTs, destroyedTs } = context.conference_info[0]
 
     const options = {
         chart: {
@@ -413,13 +421,19 @@ const ChartsWrapper = props => {
         plotOptions: {
             line: {
                 lineWidth:1
+            },
+            series: {
+                states: {
+                    hover: {
+                        lineWidthPlus: 0 //hover 时 线条加粗量 默认 1
+                    }
+                }
             }
         },
         xAxis: {
             type:"datetime",
-            tickInterval: 60000,
-            min: createdTs*1000,
-            max: destroyedTs*1000,
+            min: createTs,
+            max: destroyedTs,
         },
         title: {
             align:'left',

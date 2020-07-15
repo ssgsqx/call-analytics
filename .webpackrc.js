@@ -26,4 +26,11 @@ export default {
   disableDynamicImport: true,
   publicPath: '/',
   hash: true,
+  proxy: {
+        "/api": {
+            "target": "https://rtc-turn4-hsb.easemob.com/",
+            "changeOrigin": true,
+            "pathRewrite": { "^/api" : "" }
+        }
+    }
 };

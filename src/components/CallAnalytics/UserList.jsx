@@ -1,7 +1,7 @@
 import {
     Table
 } from 'antd';
-
+import tableFormat from '../../routes/CallAnalytics/table-format'
 // 通话人员模块
 export default function UserList(props) {
   let { data, loading } = props;
@@ -24,19 +24,18 @@ export default function UserList(props) {
     },
     {
       title: "用户进出频道时间",
-      dataIndex: "joinTs",
-      ellipsis: true
+      dataIndex: "timeRange",
+      render:(text,record) => tableFormat.get_time_range(record.joinTs,record.exitTs)
     },
     {
       title: "时长",
       dataIndex: "dur",
-      key:'time_length',
-      ellipsis: true
+      render:text => tableFormat.get_dur(text)
     },
     {
       title: "在频道内时间",
       dataIndex: "dur",
-      ellipsis: true
+      render:text => tableFormat.get_dur(text)
     },
     {
       title: "SDK",
@@ -58,11 +57,11 @@ export default function UserList(props) {
       dataIndex: "deviceInfo",
       ellipsis: true
     },
-    {
-      title: "查看体验",
-      key: "operation",
-      ellipsis: true
-    }
+    // {
+    //   title: "查看体验",
+    //   key: "operation",
+    //   ellipsis: true
+    // }
   ];
   let style = {
       margin:'18px 0',

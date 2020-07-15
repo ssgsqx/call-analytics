@@ -10,58 +10,206 @@ import {
   Button, 
   Col, 
   Row, 
-  Table 
+  Table,
+  notification
 } from "antd";
+import moment from 'moment';
+import tableFormat from './table-format';
 
 class Search extends PureComponent {
-  render() {
-    return (
-      <div className={style.wrapper}>
-        <SearchParams />
-        <List />
-      </div>
-    );
-  }
+    state = {
+        data: [],
+        loading: false
+    }
+
+    componentDidMount() {
+        this.set_appkey_in_localstorage()
+    }
+
+    set_appkey_in_localstorage(success_callback) {
+
+        const getQueryVariable = (variable) => {
+               var query = window.location.href.split('?')[1];
+               if(!query) {
+                   return ''
+               }
+               var vars = query.split("&");
+               for (var i=0;i<vars.length;i++) {
+                       var pair = vars[i].split("=");
+                       if(pair[0] == variable){return pair[1];}
+               }
+               return '';
+        }
+        const appkey = getQueryVariable('appkey');
+        localStorage.setItem('easemob-appkey',appkey)
+        // 没有 appkey 给出提示
+        if(!appkey) {
+            notification['error']({
+                message: '请在url 中填写 appkey query',
+            });
+            return
+        }
+    
+    
+        if(typeof success_callback == 'function'){
+          success_callback(this)
+        }
+    }
+
+    get_list(params) {
+        let _this = this;
+
+        this.setState({ // 设置loading
+            loading: true
+        },() => {
+            get(params).then(response => {
+                _this.setState({
+                    data: response.data,
+                    loading: false
+                });
+            }).catch(err => {
+                console.error('get data error', err)
+                _this.setState({
+                    loading: false
+                });
+            })
+        })
+
+
+    }
+    
+    render() {
+        let appkey = localStorage.getItem('easemob-appkey');
+
+        if(!appkey) {
+            return <i></i>
+        }
+
+        return (
+            <div className={style.wrapper}>
+                <SearchParams search={this.get_list.bind(this)}/>
+                <List {...this.state} />
+            </div>
+        );
+    }
 }
 
 // 搜索条件
 class SearchParams extends PureComponent {
-  handleSubmit() {
-    alert("aaa");
-  }
+    state = {
+        fromTs: moment().subtract(14, 'days'),
+        toTs: moment(),
+        start: 85,
+        size:15,
+        userName: '',
+        confrId: '',
+        inputGroupType: 'confrId', // 输入框组分类，选择的哪一个
+        inputGroupValue: '', // 输入框组值
+    }
+    componentDidMount() {
+        this.handleSubmit()
+    }
+    handleSubmit(e) {
+        if(e) {
+            e.preventDefault();
+        }
+        let { fromTs, toTs } = this.state;
+        fromTs = fromTs.valueOf(); 
+        toTs = toTs.valueOf(); // 转换 moment 对象为字符串
 
+        let { start, size, userName, confrId } = this.state;
+
+        let params = {
+            fromTs,
+            toTs,
+            size,
+        }
+        // 非必须 参数，有值就传
+        if(start) {
+            params.start = start
+        }
+        if(userName) {
+            params.userName = userName
+        }
+        if(confrId) {
+            params.confrId = confrId
+        }
+
+        this.props.search(params)
+    }
+    
+    dateChange(value) {
+        this.setState({
+            fromTs: value[0],
+            toTs: value[1]
+        })
+    }
+    inputGroupValueChange(e) {
+        let { inputGroupType } = this.state;
+
+        this.setState({
+            [inputGroupType] : e.target.value,
+            inputGroupValue: e.target.value
+        })
+    }
+    inputGroupChange(value) {
+        this.setState({
+            inputGroupType: value,
+            confrId: '',
+            userName: '',
+            inputGroupValue: '' // 全部置空
+        })
+    }
   render() {
     const { RangePicker } = DatePicker;
     const InputGroup = Input.Group;
     const { Option } = Select;
 
+    let { fromTs, toTs, inputGroupValue } = this.state
     return (
-      <Form layout="inline" onSubmit={this.handleSubmit}>
+      <Form layout="inline" onSubmit={this.handleSubmit.bind(this)}>
         <Row gutter={8}>
           <Col span={7}>
-            <RangePicker style={{ width: "100%" }}  size="large" />
+            <RangePicker 
+                onChange={this.dateChange.bind(this)}
+                showTime={{ format: 'HH:mm' }}
+                style={{ width: "100%" }}  
+                size="large" 
+                defaultValue={[fromTs, toTs]}
+            />
           </Col>
 
-          <Col span={7}>
+          <Col span={10}>
             <InputGroup compact size="large" >
-              <Select defaultValue="cname" style={{ width: "35%" }} size="large" >
-                <Option value="cname">频道名称</Option>
-                <Option value="uid">User</Option>
+              <Select 
+                defaultValue="confrId" 
+                style={{ width: "35%" }} 
+                size="large" 
+                onChange={this.inputGroupChange.bind(this)}
+              >
+                <Option value="confrId">会议ID</Option>
+                <Option value="userName">userName</Option>
               </Select>
-              <Input defaultValue="" style={{ width: "65%" }} size="large" />
+              <Input 
+                defaultValue={inputGroupValue} 
+                value={inputGroupValue} 
+                style={{ width: "65%" }} 
+                size="large" 
+                onChange={this.inputGroupValueChange.bind(this)}
+              />
             </InputGroup>
           </Col>
 
-          <Col span={7}>
+          {/* <Col span={7}>
             <Select defaultValue="all" size="large" >
               <Option value="all">全部</Option>
               <Option value="end">通话结束</Option>
               <Option value="in_progress">进行中</Option>
             </Select>
-          </Col>
+          </Col> */}
 
           <Col span={3}>
-            <Button type="primary" size="large" >搜索通话</Button>
+            <Button type="primary" size="large" htmlType='submit'>搜索通话</Button>
           </Col>
         </Row>
       </Form>
@@ -72,20 +220,20 @@ class SearchParams extends PureComponent {
 // 结果列表
 class List extends PureComponent {
   state = {
-    data: [],
     columns: [
       {
         title: "通话ID",
         dataIndex: "confrId"
       },
       {
-        title: "时区",
+        title: "时间",
         key: "timeRange",
-        render:(text,record) => (record.createdTs +'-'+ record.destroyedTs)
+        render:(text,record) => tableFormat.get_time_range(record.createTs,record.destroyedTs)
       },
       {
         title: "时长",
-        dataIndex: "dur"
+        dataIndex: "dur",
+        render:text => tableFormat.get_dur(text)
       },
       {
         title: "频道名称",
@@ -103,44 +251,11 @@ class List extends PureComponent {
 
       }
     ],
-    loading: true
   };
 
-  get_list() {
-    let _this = this;
-    let params = {}
-    get(params).then(response => {
-      _this.setState({
-        data: response.data,
-        loading: false
-      });
-    })
-
-  }
-  set_appkey_in_localstorage(success_callback) {
-
-    const getQueryVariable = (variable) => {
-           var query = window.location.href.split('?')[1];
-           var vars = query.split("&");
-           for (var i=0;i<vars.length;i++) {
-                   var pair = vars[i].split("=");
-                   if(pair[0] == variable){return pair[1];}
-           }
-           return(false);
-    }
-    const appkey = getQueryVariable('appkey');
-    localStorage.setItem('easemob-appkey',appkey)
-
-    if(typeof success_callback == 'function'){
-      success_callback(this)
-    }
-  }
-  componentDidMount() {
-    this.set_appkey_in_localstorage(this.get_list.bind(this))
-  }
-
   render() {
-    let { data, columns, loading } = this.state;
+    let { columns } = this.state;
+    let { data, loading } = this.props
 
     return (
       <Table
