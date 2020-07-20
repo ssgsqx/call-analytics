@@ -23,8 +23,6 @@ class Search extends PureComponent {
         data: [],
         loading: false,
         next_id: null,
-        // prev_id: null,
-        // next_id_arr: [null, null], // prev_id 需要使用 next_id 前第二个
         params: {
             fromTs: moment().subtract(14, 'days'),
             toTs: moment(),
@@ -59,8 +57,7 @@ class Search extends PureComponent {
         this.setState({
             params,
             next_id: null,
-            // prev_id: null, // 重置分页
-        })
+        }, this.get_list)
     }
     // format
     get_format_params() {
@@ -95,14 +92,6 @@ class Search extends PureComponent {
         let { size } = this.state.params;
         let { data } = this.state;
 
-
-        // let { next_id_arr, next_id } = this.state;
-        //     next_id_arr[1] = next_id_arr[0];
-        //     next_id_arr[0] = next_id; // 栈的写法
-
-        // this.setState({ // 将上一次的next_id 设置为本次的 prev_id
-        //     prev_id: next_id_arr[1]
-        // })
         if(data.length < size) { // 代表没有下一页 
             this.setState({
                 next_id: null
@@ -117,17 +106,7 @@ class Search extends PureComponent {
 
 
     }
-    // 请求上一页 
-    // get_prev() {
-    //     // get prev_id used as start
-
-    //     let { prev_id } = this.state;
-
-    //     let params = Object.assign(this.state.params, { start:prev_id })
-    //     this.setState({
-    //         params
-    //     }, this.get_list)
-    // }
+    
     // 请求下一页 
     get_next() {
         // get next_id used as start
@@ -172,14 +151,13 @@ class Search extends PureComponent {
         }
 
         let { prev_id, next_id } = this.state;
-        let { get_next, get_prev } = this;
+        let { get_next } = this;
         return (
             <div className={style.wrapper}>
                 <SearchParams update_params={this.update_params.bind(this)} params={this.state.params}/>
                 <List {...this.state} />
                 <CustomPagination  
                     {...{prev_id, next_id}} 
-                    // get_prev={this.get_prev.bind(this)}
                     get_next={this.get_next.bind(this)}
                 />
             </div>
@@ -338,19 +316,10 @@ class List extends PureComponent {
 
 // 自定义分页
 const CustomPagination = props => {
-    let { prev_id, next_id } = props;
+    let { next_id } = props;
     return (
-        <div>
+        <div style={{marginTop:'10px', textAlign: 'right'}}>
             
-            {/* <li 
-                className={(prev_id? '' : 'ant-pagination-disabled') + " ant-pagination-prev"} 
-                title="上一页" 
-                onClick={props.get_prev}
-            >
-                <a className="ant-pagination-item-link">
-                    <Icon type="left" />
-                </a>
-            </li> */}
             <li 
                 className={(next_id? '' : 'ant-pagination-disabled') + " ant-pagination-prev"} 
                 title="下一页" 

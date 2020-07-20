@@ -263,7 +263,7 @@ export default class BasicLayout extends React.PureComponent {
               <Redirect exact from="/" to={baseRedirect} />
             </Switch>
           </Content>
-          <Footer style={{ padding: 0 }}>
+          {/* <Footer style={{ padding: 0 }}>
             <GlobalFooter
               links={[
                 {
@@ -292,7 +292,7 @@ export default class BasicLayout extends React.PureComponent {
                 </Fragment>
               }
             />
-          </Footer>
+          </Footer> */}
         </Layout>
       </Layout>
     );
