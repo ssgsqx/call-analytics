@@ -32,5 +32,6 @@ export default {
             "changeOrigin": true,
             "pathRewrite": { "^/api" : "" }
         }
-    }
+  },
+  devtool: 'nosources-source-map'
 };

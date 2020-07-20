@@ -11,7 +11,8 @@ import {
   Col, 
   Row, 
   Table,
-  notification
+  notification,
+  Icon
 } from "antd";
 import moment from 'moment';
 import tableFormat from './table-format';
@@ -20,7 +21,20 @@ import { getPageQuery } from '../../utils/utils';
 class Search extends PureComponent {
     state = {
         data: [],
-        loading: false
+        loading: false,
+        next_id: null,
+        // prev_id: null,
+        // next_id_arr: [null, null], // prev_id 需要使用 next_id 前第二个
+        params: {
+            fromTs: moment().subtract(14, 'days'),
+            toTs: moment(),
+            size:15,
+            start: null,
+            userName: '',
+            confrId: '',
+            inputGroupType: 'confrId', // 输入框组分类，选择的哪一个
+            inputGroupValue: '', // 输入框组值
+        }
     }
 
     componentDidMount() {
@@ -33,13 +47,103 @@ class Search extends PureComponent {
             notification['error']({
                 message: '请在url 中填写 appkey query',
             });
+
+            return
         }
+
+        this.get_list()
     }
 
+    // 设置请求参数
+    update_params(params) {
+        this.setState({
+            params,
+            next_id: null,
+            // prev_id: null, // 重置分页
+        })
+    }
+    // format
+    get_format_params() {
+        
+        let { fromTs, toTs } = this.state.params;
+        fromTs = fromTs.valueOf(); 
+        toTs = toTs.valueOf(); // 转换 moment 对象为字符串
 
-    get_list(params) {
+        let { start, size, userName, confrId } = this.state.params;
+        let params = {
+            fromTs,
+            toTs,
+            size,
+        }
+        // 非必须 参数，有值就传
+        if(start) {
+            params.start = start
+        }
+        if(userName) {
+            params.userName = userName
+        }
+        if(confrId) {
+            params.confrId = confrId
+        }
+
+        return params
+    }
+    
+    // 设置分页
+    set_pagination_params() {
+        // set prev id and next id
+        let { size } = this.state.params;
+        let { data } = this.state;
+
+
+        // let { next_id_arr, next_id } = this.state;
+        //     next_id_arr[1] = next_id_arr[0];
+        //     next_id_arr[0] = next_id; // 栈的写法
+
+        // this.setState({ // 将上一次的next_id 设置为本次的 prev_id
+        //     prev_id: next_id_arr[1]
+        // })
+        if(data.length < size) { // 代表没有下一页 
+            this.setState({
+                next_id: null
+            })
+        } else {
+            
+            this.setState({
+                next_id: data[data.length-1].id,
+            })
+        }
+        
+
+
+    }
+    // 请求上一页 
+    // get_prev() {
+    //     // get prev_id used as start
+
+    //     let { prev_id } = this.state;
+
+    //     let params = Object.assign(this.state.params, { start:prev_id })
+    //     this.setState({
+    //         params
+    //     }, this.get_list)
+    // }
+    // 请求下一页 
+    get_next() {
+        // get next_id used as start
+
+        let { next_id } = this.state;
+
+        let params = Object.assign(this.state.params, { start:next_id })
+        this.setState({
+            params
+        }, this.get_list)
+
+    }
+    get_list() {
+        let params = this.get_format_params();
+
         let _this = this;
-
         this.setState({ // 设置loading
             loading: true
         },() => {
@@ -48,6 +152,7 @@ class Search extends PureComponent {
                     data: response.data,
                     loading: false
                 });
+                _this.set_pagination_params()
             }).catch(err => {
                 console.error('get data error', err)
                 _this.setState({
@@ -66,10 +171,17 @@ class Search extends PureComponent {
             return <i></i>
         }
 
+        let { prev_id, next_id } = this.state;
+        let { get_next, get_prev } = this;
         return (
             <div className={style.wrapper}>
-                <SearchParams search={this.get_list.bind(this)}/>
+                <SearchParams update_params={this.update_params.bind(this)} params={this.state.params}/>
                 <List {...this.state} />
+                <CustomPagination  
+                    {...{prev_id, next_id}} 
+                    // get_prev={this.get_prev.bind(this)}
+                    get_next={this.get_next.bind(this)}
+                />
             </div>
         );
     }
@@ -77,46 +189,17 @@ class Search extends PureComponent {
 
 // 搜索条件
 class SearchParams extends PureComponent {
-    state = {
-        fromTs: moment().subtract(14, 'days'),
-        toTs: moment(),
-        start: 0,
-        size:15,
-        userName: '',
-        confrId: '',
-        inputGroupType: 'confrId', // 输入框组分类，选择的哪一个
-        inputGroupValue: '', // 输入框组值
+    constructor(props) {
+        super(props)
+        this.state = props.params; 
     }
-    componentDidMount() {
-        this.handleSubmit()
-    }
+    
     handleSubmit(e) {
         if(e) {
             e.preventDefault();
         }
-        let { fromTs, toTs } = this.state;
-        fromTs = fromTs.valueOf(); 
-        toTs = toTs.valueOf(); // 转换 moment 对象为字符串
+        this.props.update_params(this.state)
 
-        let { start, size, userName, confrId } = this.state;
-
-        let params = {
-            fromTs,
-            toTs,
-            size,
-        }
-        // 非必须 参数，有值就传
-        if(start) {
-            params.start = start
-        }
-        if(userName) {
-            params.userName = userName
-        }
-        if(confrId) {
-            params.confrId = confrId
-        }
-
-        this.props.search(params)
     }
     
     dateChange(value) {
@@ -239,15 +322,46 @@ class List extends PureComponent {
     let { data, loading } = this.props
 
     return (
-      <Table
-        dataSource={data}
-        columns={columns}
-        size="small"
-        loading={loading}
-        className={style['conference-list']}
-      />
+
+        <Table
+            dataSource={data}
+            columns={columns}
+            size="small"
+            loading={loading}
+            className={style['conference-list']}
+            pagination={false}
+        />
+            
     );
   }
+}
+
+// 自定义分页
+const CustomPagination = props => {
+    let { prev_id, next_id } = props;
+    return (
+        <div>
+            
+            {/* <li 
+                className={(prev_id? '' : 'ant-pagination-disabled') + " ant-pagination-prev"} 
+                title="上一页" 
+                onClick={props.get_prev}
+            >
+                <a className="ant-pagination-item-link">
+                    <Icon type="left" />
+                </a>
+            </li> */}
+            <li 
+                className={(next_id? '' : 'ant-pagination-disabled') + " ant-pagination-prev"} 
+                title="下一页" 
+                onClick={props.get_next}
+            >
+                <a className="ant-pagination-item-link">
+                    <Icon type="right" />
+                </a>
+            </li>
+        </div>
+    )  
 }
 
 export default Search;
