@@ -30,8 +30,19 @@ import {
     get_video_down,
     get_send_fps,
     get_receive_fps,
-    get_resolution
+    get_resolution,
+    get_audio_lost_rate,
+    get_video_lost_rate
 } from '../../services/rtc-analytics/e2e';
+
+
+
+// Highcharts 全局配置
+Highcharts.setOptions({
+	global: {
+		useUTC: false
+	}
+});
 
 const E2eContext = React.createContext();
 
@@ -92,13 +103,14 @@ class E2e extends PureComponent {
         conference_info
     }
 
+
     return (
       <div className={style['e2e-wrapper']}>
         <ConferenceInfo data={conference_info} loading={conference_info_table_loading}/>
         <UserList data={user_list} loading={user_list_table_loading} />
         
         <E2eContext.Provider value={context_value}>
-            <Details />
+            <Details /> 
         </E2eContext.Provider>
       </div>
     );
@@ -109,6 +121,7 @@ const Details = () => {
     const [current_tab_key, set_current_tab_key] = useState('video');
     
     const change = key => {
+        console.log('Details change');
         set_current_tab_key(key); // modify state.current_tab_key, clear component cache
     }
     const { TabPane } = Tabs;
@@ -154,11 +167,11 @@ const AudioEnd = props => {
     let memId = endType == 'sender' ? context.from_memId : context.to_memId;
 
     return (<div className={style['end-wrapper']}>
-                <div className={style['user-info']}>{memId}</div>
+                <div className={style['user-info']}>User {memId}</div>
                 <CPU {...props} />
                 <Volume {...props} />
                 <BitAndPackLoss stream_type='audio'{...props} />
-                { props.end_type == 'receiver' ? <div >Freeze</div> : ''}
+                {/* { props.end_type == 'receiver' ? <div >Freeze</div> : ''} */}
             </div>)
 }
 // 视频端
@@ -169,7 +182,7 @@ const VideoEnd = props => {
     let memId = endType == 'sender' ? context.from_memId : context.to_memId;
 
     return (<div className={style['end-wrapper']}>
-                <div className={style['user-info']}>{memId}</div>
+                <div className={style['user-info']}>User {memId}</div>
                 <CPU {...props} />
                 <BitAndPackLoss stream_type='video'{...props} />
                 <FrameRate {...props} />
@@ -180,7 +193,9 @@ const VideoEnd = props => {
 // 设备状态
 const CPU = props => {
 
-    const [data,setData] = useState([])
+    const [data,setData] = useState([]);
+    const [loading,setLoading] = useState(false);
+
     let chartOptions = {
         title:{
             text:'设备状态'
@@ -196,19 +211,21 @@ const CPU = props => {
 
     useEffect(() => {
         get_cpu(confrId, memId).then(response => {
-            setData(response.data)
+            setData(response.data);
+            // setLoading(false)
         }).catch(error => {
             console.error('get_cpu', error);
+            setLoading(false)
         })
     }, []);
     
     
-    return <ChartsWrapper chartOptions={chartOptions} />
+    return <ChartsWrapper chartOptions={chartOptions} loading={loading}/>
 }
 // 音量
 const Volume = props => {
     const [data,setData] = useState([]);
-
+    const [loading,setLoading] = useState(false);
     let chartOptions = {
         title:{
             text: props.end_type == 'sender' ? '音频采集音量' : '音频播放音量'
@@ -222,20 +239,24 @@ const Volume = props => {
         let confrId = context.confrId,
             endType = props.end_type,
             memId;
-
+        setLoading(true)
         if(endType == 'sender') {
             memId = context.from_memId;
             get_captured_volume(confrId, memId).then(response => { //发送端采集音量
-                setData(response.data)
+                setData(response.data);
+                setLoading(false)
             }).catch(error => {
                 console.error('get_captured_volume', error);
+                setLoading(false)
             })
         } else {
             memId = context.to_memId;
             get_play_volume(confrId, memId).then(response => {  //接收端播放音量
-                setData(response.data)
+                setData(response.data);
+                setLoading(false)
             }).catch(error => {
                 console.error('get_play_volume', error);
+                setLoading(false)
             })
         }
        
@@ -248,13 +269,14 @@ const Volume = props => {
 // audio video bit and pack_loss
 const BitAndPackLoss = props => {
     const [data,setData] = useState([]);
-
+    const [loading,setLoading] = useState(false);
     let {
         stream_type,
         end_type
     } = props;
 
     // 区分属于哪种图表
+
     let chart_type;
     if( stream_type == 'audio' ) {
         if(end_type == 'sender') {
@@ -263,6 +285,7 @@ const BitAndPackLoss = props => {
             chart_type = 'audio_receiver'
         }
     } else if( stream_type == 'video' ) {
+
         if(end_type == 'sender') {
             chart_type = 'video_sender'
         }else {
@@ -281,42 +304,63 @@ const BitAndPackLoss = props => {
         title:{
             text: chart_title_texts[chart_type]
         },
+        plotOptions: {
+            column : {
+                color:'#FF0000'
+            }
+        },
         series: data
     }
     const context = useContext(E2eContext);
     // 请求数据
     useEffect(() => {
+        setLoading(true)
         let confrId = context.confrId,
             memId = props.end_type == 'sender' ? context.from_memId : context.to_memId;
-
         if(chart_type == 'audio_sender') { // 四种类型合到一起
             get_audio_up(confrId, memId).then(response => {
-                setData(response.data)
+                setData(response.data);
+                setLoading(false)
             }).catch(error => {
                 console.error('get bit error', error);
+                setLoading(false)
             });
-        } else if(chart_type == 'audio_receiver') {
-            get_audio_down(confrId, memId).then(response => {
-                setData(response.data)
-            }).catch(error => {
-                console.error('get bit error', error);
-            });
+        } else if(chart_type == 'audio_receiver') {// 两个接口合并一个数据
+
+            (async () => {
+
+                let video_down_respone = await get_audio_down(confrId, memId);// 音频下行
+                let video_lost_rate_respone = await get_audio_lost_rate(confrId, memId);// 音频下行 丢包率
+    
+                let new_data = video_down_respone.data.concat(video_lost_rate_respone.data);
+                setLoading(false);
+                setData(new_data)
+            })();
+
         } else if(chart_type == 'video_sender') {
+
             get_video_up(confrId, memId).then(response => {
-                setData(response.data)
+                setData(response.data);
+                setLoading(false)
             }).catch(error => {
                 console.error('get bit error', error);
+                setLoading(false)
             });
-        } else if(chart_type == 'video_receiver') {
-            get_video_down(confrId, memId).then(response => {
-                setData(response.data)
-            }).catch(error => {
-                console.error('get bit error', error);
-            });
+        } else if(chart_type == 'video_receiver') { // 两个接口合并一个数据
+
+            (async () => {
+
+                let video_down_respone = await get_video_down(confrId, memId);
+                let video_lost_rate_respone = await get_video_lost_rate(confrId, memId);
+    
+                let new_data = video_down_respone.data.concat(video_lost_rate_respone.data);
+                setLoading(false);
+                setData(new_data)
+            })()
         }
         
     },[])
-
+    
     return <ChartsWrapper chartOptions={chartOptions} />
 }
 
@@ -328,7 +372,7 @@ const AudioFreeze = props => {
 // 视频帧率
 const FrameRate = props => {
     const [data,setData] = useState([]);
-
+    const [loading,setLoading] = useState(false);
     let chartOptions = {
         title:{
             text: props.end_type == 'sender' ? '视频发送帧率' : '视频帧率和卡顿'
@@ -351,19 +395,25 @@ const FrameRate = props => {
         let confrId = context.confrId,
             endType = props.end_type,
             memId;
+        setLoading(true);
 
         if(endType == 'sender') {
             memId = context.from_memId;
             get_send_fps(confrId, memId).then(response => { //发送端帧率
                 setData(response.data)
+                setLoading(false);
             }).catch(error => {
+                setLoading(false);
                 console.error('get_send_fps', error);
             })
         } else {
             memId = context.to_memId;
             get_receive_fps(confrId, memId).then(response => {  //接收端帧率和卡顿
+                setLoading(false);
                 setData(response.data)
+            setLoading(false);
             }).catch(error => {
+                setLoading(false);
                 console.error('get_receive_fps', error);
             })
         }
@@ -374,6 +424,7 @@ const FrameRate = props => {
 // 分辨率
 const Resolution = () => {
     const [data,setData] = useState([]);
+    const [loading,setLoading] = useState(false);
 
     let chartOptions = {
         title:{
@@ -390,9 +441,13 @@ const Resolution = () => {
     useEffect(() => {
         let confrId = context.confrId,
             memId = context.to_memId;
+
+        setLoading(true);  
         get_resolution(confrId, memId).then(response => {
-            setData(response.data)
+            setData(response.data);
+            setLoading(false);  
         }).catch(error => {
+            setLoading(false);  
             console.error('get_resolution', error);
         })
     }, [])
@@ -402,6 +457,12 @@ const Resolution = () => {
 
 // 将highcharts 包装一下
 const ChartsWrapper = props => {
+
+    if(props.loading) {
+        return <div className={style['Spin-wrapper']}>
+                    <Spin size="large" />
+                </div>
+    }
     const context = useContext(E2eContext);
     
     if(!context.conference_info[0]) { // 没拿到会议信息之前，不执行
@@ -494,7 +555,16 @@ const ChartsWrapper = props => {
 
         deepAssignObj(props.chartOptions,options) // 深度合并对象
 
-
+        if(
+            !options.series ||
+            options.series.length == 0
+        ) {
+            let title = options.title.text;
+            return <div className={style['no-data-placeholder']}> 
+                        <div className={style['chart-title']}>{title}</div>
+                        <span className={style['no-data-text']}> 暂无数据 </span>
+                    </div>
+        }
 
 
     return <HighchartsReact highcharts={Highcharts} options={options} />

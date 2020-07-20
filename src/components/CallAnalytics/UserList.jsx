@@ -10,17 +10,17 @@ export default function UserList(props) {
     {
       title: "User",
       dataIndex: "memId",
-      ellipsis: true
+    //   ellipsis: true
     },
     {
       title: "区域",
       dataIndex: "ip",
-      ellipsis: true
+    //   ellipsis: true
     },
     {
       title: "通话在线状态",
       dataIndex: "",
-      ellipsis: true
+    //   ellipsis: true
     },
     {
       title: "用户进出频道时间",
@@ -35,27 +35,28 @@ export default function UserList(props) {
     {
       title: "在频道内时间",
       dataIndex: "dur",
+      key:'in-confr-dur', 
       render:text => tableFormat.get_dur(text)
     },
     {
       title: "SDK",
       dataIndex: "sdkVersion",
-      ellipsis: true
+    //   ellipsis: true
     },
     {
       title: "平台",
       dataIndex: "os",
-      ellipsis: true
+    //   ellipsis: true
     },
     {
       title: "网络",
       dataIndex: "net",
-      ellipsis: true
+    //   ellipsis: true
     },
     {
       title: "设备",
       dataIndex: "deviceInfo",
-      ellipsis: true
+    //   ellipsis: true
     },
     // {
     //   title: "查看体验",

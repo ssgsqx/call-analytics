@@ -3,7 +3,8 @@ import request from '../../utils/request';
 import EasemobCfg from '../../common/commonCfg';
 
 // const origin = EasemobCfg.rest.url;
-const origin = '/api';
+// const origin = '/api';
+const origin = 'https://rtc-turn4-hsb.easemob.com';
 
 const appkey = localStorage.getItem('easemob-appkey');
 
@@ -80,7 +81,8 @@ export async function get_audio_up(confrId, memId) {
 
     return request( `${prefix}/rtc/analytics/conference/${confrId}/sender/${memId}/audio-up`);
 }
-// 音频下行bit 端对端丢包
+
+// 音频下行bit 
 export async function get_audio_down(confrId, memId) {
     if(
         !confrId ||
@@ -96,6 +98,24 @@ export async function get_audio_down(confrId, memId) {
 
     return request( `${prefix}/rtc/analytics/conference/${confrId}/receiver/${memId}/audio-down`);
 }
+
+// 音频下行端对端丢包
+export async function get_audio_lost_rate(confrId, memId) {
+    if(
+        !confrId ||
+        !memId
+    ) {
+        return new Promise((resolve,reject) => {
+            reject({
+                error:-1,
+                message:'get_audio_lost_rate confrId、memId is required'
+            })
+        })
+    }
+
+    return request( `${prefix}/rtc/analytics/conference/${confrId}/receiver/${memId}/audio-lst-rate`);
+}
+
 // 视频上行bit 丢包
 export async function get_video_up(confrId, memId) {
     if(
@@ -112,7 +132,7 @@ export async function get_video_up(confrId, memId) {
 
     return request( `${prefix}/rtc/analytics/conference/${confrId}/sender/${memId}/video-up`);
 }
-// 视频下行bit 端对端丢包
+// 视频下行bit 
 export async function get_video_down(confrId, memId) {
     if(
         !confrId ||
@@ -128,7 +148,22 @@ export async function get_video_down(confrId, memId) {
 
     return request( `${prefix}/rtc/analytics/conference/${confrId}/receiver/${memId}/video-down`);
 }
+// 视频下行端对端丢包
+export async function get_video_lost_rate(confrId, memId) {
+    if(
+        !confrId ||
+        !memId
+    ) {
+        return new Promise((resolve,reject) => {
+            reject({
+                error:-1,
+                message:'get_video_lost_rate confrId、memId is required'
+            })
+        })
+    }
 
+    return request( `${prefix}/rtc/analytics/conference/${confrId}/receiver/${memId}/video-lst-rate`);
+}
 // 视频发送帧率
 export async function get_send_fps(confrId, memId) {
     if(
@@ -183,39 +218,3 @@ export async function get_resolution(confrId, memId) {
 
 
 
-
-// 以下不关注
-// 通话成员事件集合
-export async function get_event_list(confrId, memId, params) {
-    
-    if(
-        !confrId ||
-        !memId
-    ) {
-        return new Promise((resolve,reject) => {
-            reject({
-                error:-2,
-                message:'get event_list confrId and memId is required'
-            })
-        })
-    }
-
-    return request( `${prefix}/rtc/analytics/conference/${confrId}/users/${memId}/events`);
-}
-
-// 通话质量数据集合
-export async function get_qoe(confrId, memId, params) {
-    if(
-        !confrId ||
-        !memId
-    ) {
-        return new Promise((resolve,reject) => {
-            reject({
-                error:-2,
-                message:'get qoe confrId and memId is required'
-            })
-        })
-    }
-
-    return request( `${prefix}/rtc/analytics/conference/${confrId}/users/${memId}/qoe`);
-}

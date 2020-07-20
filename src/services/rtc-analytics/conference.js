@@ -4,7 +4,8 @@ import request from '../../utils/request';
 import EasemobCfg from '../../common/commonCfg';
 
 
-const origin = '/api';
+// const origin = '/api';
+const origin = 'https://rtc-turn4-hsb.easemob.com';
 
 const appkey = localStorage.getItem('easemob-appkey');
 

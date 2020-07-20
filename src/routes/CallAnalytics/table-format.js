@@ -1,6 +1,7 @@
 
 
 import moment from 'moment';
+import { before } from 'lodash';
 
 
 function get_dur(dur) { // 单位 ms
@@ -36,8 +37,19 @@ function get_time_range(start, end) {
     return start + '-' + end
 }
 
+function get_short_memId(memId) {
+    if(memId.length < 9) {
+        return memId
+    }
+
+    
+    let before = memId.substring(0,4),
+        after = memId.substring(memId.length - 4);
+    return before + ' **** ' + after
+}
 
 export default {
     get_dur,
-    get_time_range
+    get_time_range,
+    get_short_memId
 }

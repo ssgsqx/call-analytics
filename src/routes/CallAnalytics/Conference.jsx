@@ -20,9 +20,18 @@ import HighchartsReact from "highcharts-react-official";
 
 import { 
     Form, Select, DatePicker, Input, Button, Col, Row, Table,
-    Popover
+    Popover,
+    Spin
 } from "antd";
 
+import tableFormat from './table-format';
+
+// Highcharts 全局配置
+Highcharts.setOptions({
+	global: {
+		useUTC: false
+	}
+});
 
 class Conference extends PureComponent {
     state = {
@@ -94,7 +103,8 @@ class UserPanel extends PureComponent {
             user_list: this.props.user_list,
             confrId: this.props.confrId,
             event_list: [],
-            qoe: []
+            qoe: [],
+            loading: false
         }
     }
 
@@ -103,14 +113,27 @@ class UserPanel extends PureComponent {
         let { memId } = this.state.user;
 
         let _this = this;
-        get_event_list(confrId, memId).then(response => {
-            if(response && response.data) {
-
+        this.setState({
+            loading: true
+        }, async () => {
+            try {
+                const response = await get_event_list(confrId, memId);
                 _this.setState({
-                    event_list: response.data
+                    loading: false
+                })
+
+                if(response && response.data) {
+                    _this.setState({
+                        event_list: response.data
+                    })
+                }
+            } catch (error) {
+                _this.setState({
+                    loading: false
                 })
             }
-        });
+        })
+        
 
         // 通话质量数据
         get_qoe(confrId, memId).then(response => {
@@ -156,7 +179,7 @@ class UserPanel extends PureComponent {
             return <Link 
                         to={`/call-analytics/e2e/${confrId}/${from_memId}/${to_memId}`}
                         target='_blank'>
-                        <Button>查看详情</Button>
+                        <Button style={{float:'right'}} shape="round">查看详情</Button>
                     </Link>
         }
 
@@ -184,19 +207,23 @@ class UserPanel extends PureComponent {
         let { 
             user, 
             event_list,
-            qoe
+            qoe,
+            loading
         } = this.state;
 
         let { conference_info } = this.props;
+
         return <Col span={12}>
                     <div className={style['user-panel']}>
                         <div className={style["user-info"]}>
-                            <h2 style={{display:'inline-block'}}>{user.memName}</h2>
+                            <h2 
+                                style={{display:'inline-block', marginRight:'15px'}}
+                            >{ tableFormat.get_short_memId(user.memId) }</h2>
                             <span>{user.os}</span>
                             <span>{user.sdkVersion}</span>
                             { this.get_to_e2e_action_el() }
                         </div>
-                        <Chart { ...{qoe, conference_info}}/>
+                        <Chart { ...{qoe, conference_info, loading}}/>
                         <EventList { ...{event_list, conference_info}}/>
                     </div>
                 </Col>
@@ -208,11 +235,31 @@ class UserPanel extends PureComponent {
 // 图表
 class Chart extends PureComponent {
     render() {
-        if(!this.props.conference_info) {
+        let {
+            conference_info,
+            qoe,
+            loading
+        } = this.props;
+
+        if(!conference_info) {
             return ''
         }
-        let { createTs, destroyedTs } = this.props.conference_info
-        let { qoe } = this.props;
+
+        if(loading) {
+            return <div className={style['Spin-wrapper']}>
+                        <Spin size="large" />
+                    </div>
+        }
+
+        if(
+            !qoe ||
+            qoe.length == 0
+        ) {
+            return <div className={style['no-data-placeholder']}> 
+                        <span className={style['no-data-text']}> 暂无数据 </span>
+                    </div>
+        }
+        let { createTs, destroyedTs } = conference_info
 
         const options = {
             chart: {
@@ -279,7 +326,7 @@ class Chart extends PureComponent {
             <HighchartsReact highcharts={Highcharts} options={options} />
             </div>
         );
-        }
+    }
 }
 
 // 事件列表
@@ -404,11 +451,13 @@ class EventList extends PureComponent {
         let _o = {}
         event_list.map(item => {
             let info = this.get_info_by_event_type(item.event);
-            
-            if(!_o[info.color]){ // 计算出现次数
-                _o[info.color] = 1
-            } else {
-                _o[info.color] += 1
+
+            if(info) {
+                if(!_o[info.color]){ // 计算出现次数
+                    _o[info.color] = 1
+                } else {
+                    _o[info.color] += 1
+                }
             }
 
         })
@@ -479,6 +528,9 @@ class EventList extends PureComponent {
 
         let info = this.get_info_by_event_type(event)
         
+        if(!info) {
+            return ''
+        }
         return (
             <div 
                 style = {{
@@ -527,14 +579,17 @@ class EventList extends PureComponent {
         return <div className={style['event-progress-container']}>{columns_el}</div>
     }
     render() {
-
+        let { event_list } = this.props;
         return <div className={style['event-list']}>
                     { this.get_event_el() }
-                    <div className={style['progress-par']}></div>
+                    <div 
+                        className={style['progress-par']}
+                        style={{
+                            opacity: event_list.length == 0 ? 0 : 1
+                        }}
+                    ></div>
                 </div>
     }
 }
-
-
 
 export default Conference;

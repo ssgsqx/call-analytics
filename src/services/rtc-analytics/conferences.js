@@ -3,18 +3,20 @@ import request from '../../utils/request';
 import EasemobCfg from '../../common/commonCfg';
 
 // const origin = EasemobCfg.rest.url;
-const origin = '/api';
+// const origin = '/api';
+const origin = 'https://rtc-turn4-hsb.easemob.com';
 
-const appkey = localStorage.getItem('easemob-appkey');
-
-const orgName = appkey.split('#')[0];
-const appName = appkey.split('#')[1];
-
-const prefix = origin + '/' + orgName + '/' + appName;
 
 // const prefix = origin;
 // 通话列表
 export async function get(params) {
+
+    const appkey = localStorage.getItem('easemob-appkey');
+
+    const orgName = appkey.split('#')[0];
+    const appName = appkey.split('#')[1];
+
+    const prefix = origin + '/' + orgName + '/' + appName;
     if(
         !params || 
         !params.fromTs ||
@@ -32,6 +34,13 @@ export async function get(params) {
 }
 // 通话详情
 export async function get_by_confrId(params) {
+
+    const appkey = localStorage.getItem('easemob-appkey');
+
+    const orgName = appkey.split('#')[0];
+    const appName = appkey.split('#')[1];
+
+    const prefix = origin + '/' + orgName + '/' + appName;
     if(
         !params ||
         !params.confrId

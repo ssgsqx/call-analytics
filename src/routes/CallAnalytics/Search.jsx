@@ -15,6 +15,7 @@ import {
 } from "antd";
 import moment from 'moment';
 import tableFormat from './table-format';
+import { getPageQuery } from '../../utils/utils';
 
 class Search extends PureComponent {
     state = {
@@ -23,38 +24,18 @@ class Search extends PureComponent {
     }
 
     componentDidMount() {
-        this.set_appkey_in_localstorage()
-    }
 
-    set_appkey_in_localstorage(success_callback) {
-
-        const getQueryVariable = (variable) => {
-               var query = window.location.href.split('?')[1];
-               if(!query) {
-                   return ''
-               }
-               var vars = query.split("&");
-               for (var i=0;i<vars.length;i++) {
-                       var pair = vars[i].split("=");
-                       if(pair[0] == variable){return pair[1];}
-               }
-               return '';
-        }
-        const appkey = getQueryVariable('appkey');
-        localStorage.setItem('easemob-appkey',appkey)
+        // 存储 appkey 
+        const { appkey } = getPageQuery('appkey');
+        localStorage.setItem('easemob-appkey',appkey || '') // undefind 存进去 为字符串，影响后面判断
         // 没有 appkey 给出提示
         if(!appkey) {
             notification['error']({
                 message: '请在url 中填写 appkey query',
             });
-            return
-        }
-    
-    
-        if(typeof success_callback == 'function'){
-          success_callback(this)
         }
     }
+
 
     get_list(params) {
         let _this = this;
@@ -99,7 +80,7 @@ class SearchParams extends PureComponent {
     state = {
         fromTs: moment().subtract(14, 'days'),
         toTs: moment(),
-        start: 85,
+        start: 0,
         size:15,
         userName: '',
         confrId: '',
