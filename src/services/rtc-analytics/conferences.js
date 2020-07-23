@@ -10,7 +10,7 @@ const origin = 'https://a1-hsb.easemob.com';
 
 // const prefix = origin;
 // 通话列表
-export async function get(params) {
+export async function get(pageNum, pageSize, params) {
 
     const appkey = localStorage.getItem('easemob-appkey');
 
@@ -19,10 +19,20 @@ export async function get(params) {
 
     const prefix = origin + '/' + orgName + '/' + appName;
     if(
+        pageNum == undefined ||
+        !pageSize 
+    ) {
+        return new Promise((resolve,reject) => {
+            reject({
+                error:-1,
+                message:'get conferences pageNum or pageSize is required'
+            })
+        }) 
+    }
+    if(
         !params || 
         !params.fromTs ||
-        !params.toTs ||
-        !params.size
+        !params.toTs
     ) {
         return new Promise((resolve,reject) => {
             reject({
@@ -31,7 +41,7 @@ export async function get(params) {
             })
         })  
     }
-    return request( prefix + `/rtc/analytics/conferences?${stringify(params)}`);
+    return request( prefix + `/rtc/analytics/conferences/${pageNum}/${pageSize}?${stringify(params)}`);
 }
 // 通话详情
 export async function get_by_confrId(params) {

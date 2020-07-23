@@ -22,16 +22,17 @@ class Search extends PureComponent {
     state = {
         data: [],
         loading: false,
-        next_id: null,
+        pageNum: 0,
+        pageSize: 15,
+        next_disabled: false,
         params: {
             fromTs: moment().subtract(14, 'days'),
             toTs: moment(),
-            size:15,
-            start: null,
             userName: '',
             confrId: '',
             inputGroupType: 'confrId', // 输入框组分类，选择的哪一个
             inputGroupValue: '', // 输入框组值
+            finished: true
         }
     }
 
@@ -56,7 +57,8 @@ class Search extends PureComponent {
     update_params(params) {
         this.setState({
             params,
-            next_id: null,
+            pageNum: 0,
+            next_disabled: false
         }, this.get_list)
     }
     // format
@@ -66,16 +68,14 @@ class Search extends PureComponent {
         fromTs = fromTs.valueOf(); 
         toTs = toTs.valueOf(); // 转换 moment 对象为字符串
 
-        let { start, size, userName, confrId } = this.state.params;
+        let { userName, confrId, finished } = this.state.params;
         let params = {
             fromTs,
             toTs,
-            size,
+            finished
         }
         // 非必须 参数，有值就传
-        if(start) {
-            params.start = start
-        }
+        
         if(userName) {
             params.userName = userName
         }
@@ -89,44 +89,42 @@ class Search extends PureComponent {
     // 设置分页
     set_pagination_params() {
         // set prev id and next id
-        let { size } = this.state.params;
+        let { pageSize } = this.state;
         let { data } = this.state;
 
-        if(data.length < size) { // 代表没有下一页 
+        if(data.length < pageSize) { // 代表没有下一页 
             this.setState({
-                next_id: null
-            })
-        } else {
-            
-            this.setState({
-                next_id: data[data.length-1].id,
+                next_disabled: true
             })
         }
+        
         
 
 
     }
-    
+    get_prev() {
+        this.setState(state => ({
+            pageNum: state.pageNum - 1,
+            next_disabled: false
+        }), this.get_list)
+    }
     // 请求下一页 
     get_next() {
-        // get next_id used as start
 
-        let { next_id } = this.state;
-
-        let params = Object.assign(this.state.params, { start:next_id })
-        this.setState({
-            params
-        }, this.get_list)
+        this.setState(state => ({
+            pageNum: state.pageNum + 1 
+        }), this.get_list)
 
     }
     get_list() {
         let params = this.get_format_params();
+        let { pageNum, pageSize } = this.state;
 
         let _this = this;
         this.setState({ // 设置loading
             loading: true
         },() => {
-            get(params).then(response => {
+            get(pageNum, pageSize, params).then(response => {
                 _this.setState({
                     data: response.data,
                     loading: false
@@ -150,15 +148,16 @@ class Search extends PureComponent {
             return <i></i>
         }
 
-        let { prev_id, next_id } = this.state;
-        let { get_next } = this;
+        let { pageNum, next_disabled } = this.state;
+
         return (
             <div className={style.wrapper}>
-                <SearchParams update_params={this.update_params.bind(this)} params={this.state.params}/>
+                <WrapperSearchParams params={this.state.params} update_params={this.update_params.bind(this)} />
                 <List {...this.state} />
                 <CustomPagination  
-                    {...{prev_id, next_id}} 
+                    {...{pageNum, next_disabled}} 
                     get_next={this.get_next.bind(this)}
+                    get_prev={this.get_prev.bind(this)}
                 />
             </div>
         );
@@ -169,15 +168,33 @@ class Search extends PureComponent {
 class SearchParams extends PureComponent {
     constructor(props) {
         super(props)
-        this.state = props.params; 
     }
     
     handleSubmit(e) {
-        if(e) {
-            e.preventDefault();
-        }
-        this.props.update_params(this.state)
+        e.preventDefault();
+        this.props.form.validateFields((err, values) => {
+          if (!err) {
+                console.log('Received values of form: ', values);
 
+                let {
+
+                    dateRange,
+                    exactType, // confrId or userName
+                    exactValue, // the value of confrId or userName
+                    finished
+                } = values;
+
+                let params = {
+                    fromTs: dateRange[0],
+                    toTs: dateRange[1],
+                    finished
+                }
+                if(exactValue) {
+                    params[exactType] = exactValue;
+                }
+                this.props.update_params(params)
+          }
+        });
     }
     
     dateChange(value) {
@@ -186,69 +203,81 @@ class SearchParams extends PureComponent {
             toTs: value[1]
         })
     }
-    inputGroupValueChange(e) {
-        let { inputGroupType } = this.state;
-
-        this.setState({
-            [inputGroupType] : e.target.value,
-            inputGroupValue: e.target.value
-        })
-    }
-    inputGroupChange(value) {
-        this.setState({
-            inputGroupType: value,
-            confrId: '',
-            userName: '',
-            inputGroupValue: '' // 全部置空
-        })
+    
+    inputGroupChange() {
+        this.props.form.setFieldsValue({
+            exactValue: ''
+        });
     }
   render() {
     const { RangePicker } = DatePicker;
     const InputGroup = Input.Group;
     const { Option } = Select;
 
-    let { fromTs, toTs, inputGroupValue } = this.state
+    let { fromTs, toTs } = this.props.params;
+
+    const { getFieldDecorator } = this.props.form;
+
     return (
       <Form layout="inline" onSubmit={this.handleSubmit.bind(this)}>
         <Row gutter={8}>
+            
           <Col span={7}>
-            <RangePicker 
-                onChange={this.dateChange.bind(this)}
-                showTime={{ format: 'HH:mm' }}
-                style={{ width: "100%" }}  
-                size="large" 
-                defaultValue={[fromTs, toTs]}
-            />
+                <Form.Item className="Item">
+                    {getFieldDecorator('dateRange', {
+                            rules: [{ required: true, message: '请选择时间范围' }],
+                            initialValue: [fromTs, toTs]
+                    })(
+                        <RangePicker 
+                            onChange={this.dateChange.bind(this)}
+                            showTime={{ format: 'HH:mm' }}
+                            style={{ width: "100%" }}  
+                            size="large" 
+                        />
+                    )}
+                </Form.Item>
           </Col>
 
           <Col span={10}>
             <InputGroup compact size="large" >
-              <Select 
-                defaultValue="confrId" 
-                style={{ width: "35%" }} 
-                size="large" 
-                onChange={this.inputGroupChange.bind(this)}
-              >
-                <Option value="confrId">会议ID</Option>
-                <Option value="userName">userName</Option>
-              </Select>
-              <Input 
-                defaultValue={inputGroupValue} 
-                value={inputGroupValue} 
-                style={{ width: "65%" }} 
-                size="large" 
-                onChange={this.inputGroupValueChange.bind(this)}
-              />
+                {getFieldDecorator('exactType', {
+                        rules: [{ required: true, message:'' }],
+                        initialValue: 'confrId'
+                })(
+                    <Select 
+                        style={{ width: "35%" }} 
+                        size="large" 
+                        onChange={this.inputGroupChange.bind(this)}
+                    >
+                        <Option value="confrId">会议ID</Option>
+                        <Option value="userName">创建者userName</Option>
+                    </Select>
+                )}
+                {getFieldDecorator('exactValue', {
+                        rules: [{ required:false }],
+                        initialValue: ''
+                })(
+                    <Input 
+                        style={{ width: "65%" }} 
+                        size="large" 
+                    />
+                )}
+              
             </InputGroup>
           </Col>
 
-          {/* <Col span={7}>
-            <Select defaultValue="all" size="large" >
-              <Option value="all">全部</Option>
-              <Option value="end">通话结束</Option>
-              <Option value="in_progress">进行中</Option>
-            </Select>
-          </Col> */}
+          <Col span={4}>
+                {getFieldDecorator('finished', {
+                    rules: [{ required:true }],
+                    initialValue: 'true'
+                })(
+                    <Select size="large" >
+                        <Option value='true'>通话结束</Option>
+                        <Option value='false'>进行中</Option>
+                    </Select>
+                )}
+            
+          </Col>
 
           <Col span={3}>
             <Button type="primary" size="large" htmlType='submit'>搜索通话</Button>
@@ -258,6 +287,8 @@ class SearchParams extends PureComponent {
     );
   }
 }
+
+const WrapperSearchParams = Form.create()(SearchParams)
 
 // 结果列表
 class List extends PureComponent {
@@ -285,11 +316,13 @@ class List extends PureComponent {
         title: "操作",
         key: "action",
         render:(text,record) => (
-          record.finished ? 
-          <Link 
-            to={`/call-analytics/conference/${record.confrId}`}
-            target='_blank'
-          >查看通话</Link> : '')
+                <Link 
+                    to={`/call-analytics/conference/${record.confrId}`}
+                    target='_blank'
+                >
+                    {record.finished ? '查看通话' : '进行中'}
+                </Link>
+            )
 
       }
     ],
@@ -316,12 +349,22 @@ class List extends PureComponent {
 
 // 自定义分页
 const CustomPagination = props => {
-    let { next_id } = props;
+    let { pageNum, next_disabled } = props;
     return (
         <div style={{marginTop:'10px', textAlign: 'right'}}>
             
             <li 
-                className={(next_id? '' : 'ant-pagination-disabled') + " ant-pagination-prev"} 
+                className={(pageNum == 0 ? 'ant-pagination-disabled' : '') + " ant-pagination-prev"} 
+                title="上一页" 
+                onClick={props.get_prev}
+            >
+                <a className="ant-pagination-item-link">
+                    <Icon type="left" />
+                </a>
+            </li>
+
+            <li 
+                className={(next_disabled ? 'ant-pagination-disabled' : '') + " ant-pagination-prev"} 
                 title="下一页" 
                 onClick={props.get_next}
             >

@@ -8,8 +8,8 @@
 
   const columns = [
     {
-      title: "项目名称",
-      dataIndex: "projectId"
+      title: "会议ID",
+      dataIndex: "confrId"
     },
     {
       title: "频道名称",

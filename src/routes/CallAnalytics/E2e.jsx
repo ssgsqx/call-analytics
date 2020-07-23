@@ -107,7 +107,11 @@ class E2e extends PureComponent {
     return (
       <div className={style['e2e-wrapper']}>
         <ConferenceInfo data={conference_info} loading={conference_info_table_loading}/>
-        <UserList data={user_list} loading={user_list_table_loading} />
+        <UserList 
+            data={user_list} 
+            loading={user_list_table_loading} 
+            conference_info={conference_info[0]}
+        />
         
         <E2eContext.Provider value={context_value}>
             <Details /> 
@@ -454,7 +458,77 @@ const Resolution = () => {
     const context = useContext(E2eContext);
     return <ChartsWrapper chartOptions={chartOptions} />
 }
+// legend-formatter
+function legend_formatter(confrId) {
 
+    // sid or subSid
+    // name prefix
+    // this 关键字是指 series对象
+    
+    let names = { // 几个关键字
+        'PUB_SEND_VIDEO_BITRATE': {
+            name: 'send-bit',
+            end_type: 'send'
+        },
+        'PUB_SEND_VIDEO_FRAME_RATE': {
+            name: 'send-fps',
+            end_type: 'send'
+        },
+        'SUB_VIDEO_RECV_FRAME_RATE': {
+            name: 'receive-fps',
+            end_type: 'receive'
+        },
+        'SUB_VIDEO_RECV_BITRATE': {
+            name: 'receive-bit',
+            end_type: 'receive'
+        },
+        'SUB_VIDEO_RECV_RESOLUTION': {
+            name: 'receive-resolution',
+            end_type: 'receive'
+        },
+        'SUB_VIDEO_LOSS_RATE': {
+            name: 'receive-loss-rate',
+            end_type: 'receive'
+        },
+
+        // audio
+        'PUB_SEND_AUDIO_INPUT_LEVEL': {
+            name: 'send-audio-level',
+            end_type: 'send'
+        },
+        'SUB_PLAY_AUDIO_INPUT_LEVEL': {
+            name: 'receive-play-volume',
+            end_type: 'receive'
+        },
+        'PUB_SEND_AUDIO_BITRATE': {
+            name: 'send-bit',
+            end_type: 'send'
+        },
+        'SUB_AUDIO_RECV_BITRATE': {
+            name: 'receive-bit',
+            end_type: 'receive'
+        },
+        'SUB_AUDIO_LOSS_RATE': {
+            name: 'receive-loss-rate',
+            end_type: 'receive'
+        },
+    }
+
+    let name_info = names[this.name];
+
+    if(!name_info) {
+        return this.name
+    }
+
+    let { userOptions } = this;
+    let stream_id = '';
+    stream_id = name_info.end_type == 'send' ? userOptions.sid : userOptions.subSId; // 订阅不同的 字段
+
+    let reg = new RegExp(`__Of_${confrId || ''}`, 'g')
+    stream_id = stream_id.replace(reg,'_'); // 裁剪
+
+    return name_info.name + '-' + stream_id;
+}
 // 将highcharts 包装一下
 const ChartsWrapper = props => {
 
@@ -465,15 +539,16 @@ const ChartsWrapper = props => {
     }
     const context = useContext(E2eContext);
     
-    if(!context.conference_info[0]) { // 没拿到会议信息之前，不执行
-        return <i></i>
+    let createTs, destroyedTs;
+    if(context.conference_info[0]) { // 没拿到会议信息之前，不执行
+        createTs = context.conference_info[0].createTs;
+        destroyedTs = context.conference_info[0].destroyedTs;
     }
-    const { createTs, destroyedTs } = context.conference_info[0]
 
     const options = {
         chart: {
           zoomType: "x",
-          height:191
+          height:300
         },
         
         credits: {
@@ -488,7 +563,11 @@ const ChartsWrapper = props => {
                     hover: {
                         lineWidthPlus: 0 //hover 时 线条加粗量 默认 1
                     }
-                }
+                },
+                marker: {
+                    enabled: false
+                },
+                pointWidth: 1
             }
         },
         xAxis: {
@@ -511,7 +590,7 @@ const ChartsWrapper = props => {
         //       return Math.abs(this.value) + "kbps";
         //     }
         //   },
-            // min: -120,  //最小
+            min: 0,  //最小
             // tickInterval: 120, //步长
             // max:840,//最大
             gridLineWidth: 0,
@@ -526,6 +605,16 @@ const ChartsWrapper = props => {
             }
           ]
         },
+        legend: {
+            // enabled: false,
+            labelFormatter: function() {
+                let confrId;
+                if(context.conference_info[0]) { // 没拿到会议信息之前，不执行
+                    confrId = context.conference_info[0].confrId;
+                }
+                return legend_formatter.bind(this,confrId)();
+            }
+        }
     };
 
     // test ...object 

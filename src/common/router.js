@@ -97,10 +97,6 @@ export const getRouterData = app => {
       )
     },
 
-    // test-hicharts
-    "/test-highcharts": {
-        component:dynamicWrapper(app, ['callAnalytics'], () => import('../routes/CallAnalytics/HighchartsTest')), 
-    }
   };
   // Get name from ./menu.js or just set it in the router data.
   const menuData = getFlatMenuData(getMenuData());

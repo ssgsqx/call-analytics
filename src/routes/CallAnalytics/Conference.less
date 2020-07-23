@@ -65,3 +65,22 @@
         padding: 3px 10px;
     }
 }
+
+.online-status-wrapper {
+    width: 100%;
+    height: 18px;
+    background: #e9ecef;
+    position: relative;
+
+    .online-status {
+        min-width: 1%;
+        height: 100%;
+        background: #51bef0;
+        position: absolute;
+    }
+}
+:global {
+    .ant-layout.ant-layout-has-sider > .ant-layout, .ant-layout.ant-layout-has-sider > .ant-layout-content {
+        overflow-x: auto;
+    }
+}

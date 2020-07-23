@@ -21,6 +21,9 @@ const codeMessage = {
   504: '网关超时。',
 };
 function checkStatus(response) {
+    if(response.status == 404) { // 404 较多 web无数据
+        return
+    }
   if (response.status >= 200 && response.status < 300) {
     return response;
   }

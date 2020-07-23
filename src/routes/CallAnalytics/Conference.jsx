@@ -19,11 +19,12 @@ import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 
 import { 
-    Form, Select, DatePicker, Input, Button, Col, Row, Table,
+    Button, Col, Row,
     Popover,
     Spin
 } from "antd";
 
+import moment from 'moment';
 import tableFormat from './table-format';
 
 // Highcharts 全局配置
@@ -72,7 +73,11 @@ class Conference extends PureComponent {
     return (
         <div className={style.wrapper}>
             <ConferenceInfo data={basic_info} loading={basic_info_table_loading}/>
-            <UserList data={user_list} loading={user_list_table_loading} />
+            <UserList 
+                data={user_list} 
+                loading={user_list_table_loading} 
+                conference_info={basic_info[0]}
+            />
 
             {/* 通话质量面板 */}
             <Row gutter={[16,16]}>
@@ -104,6 +109,7 @@ class UserPanel extends PureComponent {
             confrId: this.props.confrId,
             event_list: [],
             qoe: [],
+            filter_qoe:[],
             loading: false
         }
     }
@@ -139,7 +145,8 @@ class UserPanel extends PureComponent {
         get_qoe(confrId, memId).then(response => {
             if(response && response.data) {
                 _this.setState({
-                    qoe: response.data
+                    qoe: response.data,
+                    filter_qoe: response.data
                 })
             }
         })
@@ -188,7 +195,11 @@ class UserPanel extends PureComponent {
             <div>
                 {can_choose_users.map((item,index) => {
                     let from_memId = item;
-                    return <div key={index} >
+                    return <div 
+                                key={index} 
+                                // onMouseOver={this.filter_chart_series.bind(this, from_memId)}
+                                // onMouseOut={this.reset_chart_series.bind(this)}
+                            >
                                 <Link 
                                     onMouseEnter={() => console.log(from_memId)}
                                     to={`/call-analytics/e2e/${confrId}/${from_memId}/${to_memId}`}
@@ -203,12 +214,30 @@ class UserPanel extends PureComponent {
         
 
     }
+    // 过滤图表数据列
+    filter_chart_series(memId) {
+        let { qoe } = this.state;
+        
+        let filter_qoe = qoe.filter(item => item.subMemId == memId)
+        this.setState({
+            filter_qoe
+        })
+    }
+    reset_chart_series() {
+        let { qoe } = this.state;
+        
+        this.setState({
+            filter_qoe: qoe
+        })
+    }
     render() {
         let { 
             user, 
             event_list,
             qoe,
-            loading
+            filter_qoe,
+            loading,
+            confrId
         } = this.state;
 
         let { conference_info } = this.props;
@@ -218,12 +247,12 @@ class UserPanel extends PureComponent {
                         <div className={style["user-info"]}>
                             <h2 
                                 style={{display:'inline-block', marginRight:'15px'}}
-                            >{ tableFormat.get_short_memId(user.memId) }</h2>
+                            >{ tableFormat.get_short_memId(user.memId, confrId) }</h2>
                             <span>{user.os}</span>
                             <span>{user.sdkVersion}</span>
                             { this.get_to_e2e_action_el() }
                         </div>
-                        <Chart { ...{qoe, conference_info, loading}}/>
+                        <Chart { ...{ conference_info, loading, confrId}} qoe={filter_qoe}/>
                         <EventList { ...{event_list, conference_info}}/>
                     </div>
                 </Col>
@@ -238,12 +267,9 @@ class Chart extends PureComponent {
         let {
             conference_info,
             qoe,
-            loading
+            loading,
+            confrId
         } = this.props;
-
-        if(!conference_info) {
-            return ''
-        }
 
         if(loading) {
             return <div className={style['Spin-wrapper']}>
@@ -259,7 +285,13 @@ class Chart extends PureComponent {
                         <span className={style['no-data-text']}> 暂无数据 </span>
                     </div>
         }
-        let { createTs, destroyedTs } = conference_info
+
+        let createTs, destroyedTs;
+
+        if(conference_info) { // 有会议时间 就显示会议时间，没有就不设置 chart min/max
+            createTs = conference_info.createTs;
+            destroyedTs = conference_info.destroyedTs;
+        }
 
         const options = {
             chart: {
@@ -281,6 +313,9 @@ class Chart extends PureComponent {
                         hover: {
                             lineWidthPlus: 0 //hover 时 线条加粗量 默认 1
                         }
+                    },
+                    marker: {
+                        enabled: false
                     }
                 }
             },
@@ -298,11 +333,11 @@ class Chart extends PureComponent {
                 },
                 labels: {
                     formatter: function() {
-                    return Math.abs(this.value) + "kbps";
+                        return Math.abs(this.value) + "KBps";
                     }
                 },
                 // min: -120,  //最小
-                tickInterval: 120, //步长
+                // tickInterval: 120, //步长
                 // max:840,//最大
                 gridLineWidth: 0,
                 tickWidth:1,
@@ -311,19 +346,23 @@ class Chart extends PureComponent {
                 }]
             },
             tooltip: {
-            shared: true,
-            crosshairs: [
-                {
-                width: 1,
-                color: "#000"
-                }
-            ]
+                shared: true,
+                formatter: function(){
+                    return tableFormat.qoe_tooltip_format.bind(this,confrId)()
+                },
+                crosshairs: [
+                    {
+                    width: 1,
+                    color: "#000"
+                    }
+                ],
+                headerFormat: ''
             },
             series: qoe
         };
         return (
             <div className={style['chart']}>
-            <HighchartsReact highcharts={Highcharts} options={options} />
+                <HighchartsReact highcharts={Highcharts} options={options} />
             </div>
         );
     }
@@ -374,7 +413,7 @@ class EventList extends PureComponent {
         // (当前时间戳 - 会议开始时间)/总会议时长 --- 计算在会议中的位置 单位都为ms
         let left = Math.round(((servTime - createTs)/dur)*100);
 
-        if(left == 100) { // 100% 的定位 会跨出 progress-bar
+        if(left >= 100) { // 1.100% 的定位 会跨出 progress-bar、 2.退出会议事件 会比会议结束时间稍有延迟
             left = 99
         }
 
@@ -407,10 +446,11 @@ class EventList extends PureComponent {
 
     }
 
-    get_info_by_event_type(event_type) {
+    get_info_by_event_type(event_type, connStateCode) {
         // 绿, color:'rgb(38, 185, 154)'
         // 黄, color:'rgb(255, 215, 0)'
         // 红, color:'rgb(255, 0, 0)'
+
         let events = {
             0:{ name:'加入会议', color:'rgb(38, 185, 154)'},
             1:{ name:'退出会议', color:'rgb(255, 0, 0)' },
@@ -434,10 +474,38 @@ class EventList extends PureComponent {
             17:{ name:'unsub', color:'rgb(255, 0, 0)' },
             18:{ name:'pub失败', color:'rgb(255, 0, 0)' },
             19:{ name:'repub', color:'rgb(255, 0, 0)' },
-            20:{ name:'STREAM_PC_CONNECT_STATE', color:'rgb(38, 185, 154)' },
+            20:{ 
+                0 : { name:'RTCIceConnectionStateNew', color:'rgb(38, 185, 154)' },
+                1 : { name:'RTCIceConnectionStateChecking', color:'rgb(38, 185, 154)' },
+                2 : { name:'RTCIceConnectionStateConnected', color:'rgb(38, 185, 154)' },
+                3 : { name:'RTCIceConnectionStateCompleted', color:'rgb(38, 185, 154)' },
+                4 : { name:'RTCIceConnectionStateFailed', color:'rgb(255, 0, 0)' },
+                5 : { name:'RTCIceConnectionStateDisconnected', color:'rgb(255, 0, 0)' },
+                6 : { name:'RTCIceConnectionStateClosed', color:'rgb(255, 0, 0)' },
+                7 : { name:'RTCIceConnectionStateCount', color:'rgb(255, 215, 0)' },
+            },
             21:{ name:'ROLE_CHANGE', color:'rgb(38, 185, 154)' },
+
+            22:{ name:'发送音频首帧', color:'rgb(38, 185, 154)' },
+            23:{ name:'发送视频首帧', color:'rgb(38, 185, 154)' },
+            24:{ name:'接收音频首帧', color:'rgb(38, 185, 154)' },
+            25:{ name:'接收视频首帧', color:'rgb(38, 185, 154)' },
            
         };
+
+        if(event_type == 20) {
+            
+            let connState = events[20][connStateCode];
+
+            if(!connState) {
+                return {
+                    name:'STREAM_PC_CONNECT_STATE', 
+                    color:'rgb(38, 185, 154)',
+                }
+            }
+            connState.name = connState.name.replace(/(RTC|Connection)/g, '')
+            return connState // 裁剪
+        }
 
         return events[event_type]
     }
@@ -450,7 +518,7 @@ class EventList extends PureComponent {
 
         let _o = {}
         event_list.map(item => {
-            let info = this.get_info_by_event_type(item.event);
+            let info = this.get_info_by_event_type(item.event, item.connState); // item.connState only exist at event == 20
 
             if(info) {
                 if(!_o[info.color]){ // 计算出现次数
@@ -520,13 +588,14 @@ class EventList extends PureComponent {
 
     }
     
-    get_event_popover_el(event, index) {
+    get_event_popover_el(item, index) {
+        let { event, connState, servTime } = item
         if(!event) {
             return ''
         }
         
 
-        let info = this.get_info_by_event_type(event)
+        let info = this.get_info_by_event_type(event,connState)
         
         if(!info) {
             return ''
@@ -545,8 +614,8 @@ class EventList extends PureComponent {
                     height: '8px',
                     borderRadius: '8px',
                     display:'inline-block',
-                    marginRight:'10px'
                 }}></span>
+                <span style={{margin:'0 10px'}}>{moment(servTime).format("HH:mm:ss")}</span>
                 <span>{info.name}</span>
             </div>
         )
@@ -562,7 +631,7 @@ class EventList extends PureComponent {
                 height = this.get_column_height(columns[key].event_list.length) + '%',
                 background = columns[key].background;
 
-            let popover_el = columns[key].event_list.map((item, index) => this.get_event_popover_el(item.event, index));
+            let popover_el = columns[key].event_list.map((item, index) => this.get_event_popover_el(item, index));
             return <Popover
                         content={popover_el} 
                         title="事件列表" 
@@ -580,6 +649,12 @@ class EventList extends PureComponent {
     }
     render() {
         let { event_list } = this.props;
+        let { conference_info } = this.state;
+
+        if(!conference_info) {
+            return ''
+        }
+
         return <div className={style['event-list']}>
                     { this.get_event_el() }
                     <div 
