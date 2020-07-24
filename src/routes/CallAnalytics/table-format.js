@@ -52,6 +52,7 @@ function get_short_memId(memId, confrId) {
     return before + ' **** ' + after
 }
 
+// 格式化 qoe 页面的 chart tooltip
 function qoe_tooltip_format(confrId) {
 
     const get_name = (item) => {
@@ -68,7 +69,6 @@ function qoe_tooltip_format(confrId) {
             sid = userOptions.subSId.replace(reg,''),
             value = Math.abs(item.y);
 
-        // return name_prefix + '_' + memId + '_SId:' +  sid
         return `${name_prefix}: <b>${value}</b>, MemId: ${memId}, Sid: ${sid}`
     }
     
@@ -81,14 +81,30 @@ function qoe_tooltip_format(confrId) {
 
     return value
 }
+// 格式化 e2e 页面的 chart tooltip 添加 sid or subSid
+function e2e_tooltip_formatter(confrId) {
 
-function legend_formatter(confrId) {
+    let value = '';
+    this.points.map(item => {
+        value += formatter_by_series(item.series, confrId, item.y) + '<br/>'
+    })
 
+    return value
+}
+
+// e2e chart legend 格式化 添加 sid or subSid
+function e2e_legend_formatter(confrId) {
+    return formatter_by_series(this, confrId) // this 就是 series 对象
+}
+
+// 通过 series 对象 将 neme 和 sid or subSid 结合到一起
+function formatter_by_series(series, confrId, y) {
     // sid or subSid
     // name prefix
-    // this 关键字是指 series对象
+    //  series对象
+    //  y : 图表的y 轴值， tooltip 需要 legend 不需要
     
-    let names = { // 几个关键字
+    let names = { // 几个关键字 缩短 name 
         'PUB_SEND_VIDEO_BITRATE': {
             name: 'send-bit',
             end_type: 'send'
@@ -137,24 +153,37 @@ function legend_formatter(confrId) {
         },
     }
 
-    let name_info = names[this.name];
+    let name_info = names[series.name];
 
     if(!name_info) {
-        return this.name
+        if(y != undefined) {
+            return `${series.name}: <b>${y}</b>`;
+        }
+        return series.name
     }
 
-    let { userOptions } = this;
+
+    let { userOptions } = series;
     let stream_id = '';
     stream_id = name_info.end_type == 'send' ? userOptions.sid : userOptions.subSId; // 订阅不同的 字段
 
     let reg = new RegExp(`__Of_${confrId || ''}`, 'g')
     stream_id = stream_id.replace(reg,'_'); // 裁剪
 
+    if(y != undefined) { // tooltip 需要 y 值
+        return `${name_info.name}-${stream_id}: <b>${y}</b>`;
+    }
     return name_info.name + '-' + stream_id;
+
 }
+
+
+
 export default {
     get_dur,
     get_time_range,
     get_short_memId,
-    qoe_tooltip_format
+    qoe_tooltip_format,
+    e2e_tooltip_formatter,
+    e2e_legend_formatter
 }

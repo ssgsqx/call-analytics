@@ -35,7 +35,7 @@ import {
     get_video_lost_rate
 } from '../../services/rtc-analytics/e2e';
 
-
+import tableFormat from './table-format';
 
 // Highcharts 全局配置
 Highcharts.setOptions({
@@ -171,7 +171,12 @@ const AudioEnd = props => {
     let memId = endType == 'sender' ? context.from_memId : context.to_memId;
 
     return (<div className={style['end-wrapper']}>
-                <div className={style['user-info']}>User {memId}</div>
+                <div className={style['user-info']}>
+                    User {tableFormat.get_short_memId(memId, context.confrId) } 
+                    <span style={{marginLeft:'20px', fontSize:'14px', fontWeight: 'normal'}}>
+                        {endType == 'sender' ? ' 发送端' : ' 接收端'}
+                    </span>
+                </div>
                 <CPU {...props} />
                 <Volume {...props} />
                 <BitAndPackLoss stream_type='audio'{...props} />
@@ -186,7 +191,12 @@ const VideoEnd = props => {
     let memId = endType == 'sender' ? context.from_memId : context.to_memId;
 
     return (<div className={style['end-wrapper']}>
-                <div className={style['user-info']}>User {memId}</div>
+                <div className={style['user-info']}>
+                    User {tableFormat.get_short_memId(memId, context.confrId) } 
+                    <span style={{marginLeft:'20px', fontSize:'14px', fontWeight: 'normal'}}>
+                        {endType == 'sender' ? ' 发送端' : ' 接收端'}
+                    </span>
+                </div>
                 <CPU {...props} />
                 <BitAndPackLoss stream_type='video'{...props} />
                 <FrameRate {...props} />
@@ -203,6 +213,13 @@ const CPU = props => {
     let chartOptions = {
         title:{
             text:'设备状态'
+        },
+        yAxis: {
+            labels: {
+                formatter: function() {
+                    return this.value + "%";
+                },
+            }
         },
         series: data
     }
@@ -298,9 +315,9 @@ const BitAndPackLoss = props => {
     }
 
     let chart_title_texts = {
-        'audio_sender': '音频上行和网络丢包',
+        'audio_sender': '音频上行',
         'audio_receiver': '音频下行和端到端丢包',
-        'video_sender': '视频频上行和网络丢包',
+        'video_sender': '视频上行',
         'video_receiver': '视频下行和端对端丢包'
     };
 
@@ -311,6 +328,13 @@ const BitAndPackLoss = props => {
         plotOptions: {
             column : {
                 color:'#FF0000'
+            }
+        },
+        yAxis: {
+            labels: {
+                formatter: function() {
+                    return this.value + "KBps";
+                },
             }
         },
         series: data
@@ -379,19 +403,16 @@ const FrameRate = props => {
     const [loading,setLoading] = useState(false);
     let chartOptions = {
         title:{
-            text: props.end_type == 'sender' ? '视频发送帧率' : '视频帧率和卡顿'
+            text: props.end_type == 'sender' ? '视频发送帧率' : '视频接收帧率'
         },
         series: data,
-        // plotOptions: {
-        //     line:{
-        //         threshold: 4,
-        //         negativeColor: 'red'
-        //     }
-        // },
-        // yAxis:{
-        //     min:0,
-        //     max:20
-        // }
+        yAxis: {
+            labels: {
+                formatter: function() {
+                    return this.value + "fps";
+                },
+            }
+        }
     }
     const context = useContext(E2eContext);
     // 请求数据
@@ -458,77 +479,7 @@ const Resolution = () => {
     const context = useContext(E2eContext);
     return <ChartsWrapper chartOptions={chartOptions} />
 }
-// legend-formatter
-function legend_formatter(confrId) {
 
-    // sid or subSid
-    // name prefix
-    // this 关键字是指 series对象
-    
-    let names = { // 几个关键字
-        'PUB_SEND_VIDEO_BITRATE': {
-            name: 'send-bit',
-            end_type: 'send'
-        },
-        'PUB_SEND_VIDEO_FRAME_RATE': {
-            name: 'send-fps',
-            end_type: 'send'
-        },
-        'SUB_VIDEO_RECV_FRAME_RATE': {
-            name: 'receive-fps',
-            end_type: 'receive'
-        },
-        'SUB_VIDEO_RECV_BITRATE': {
-            name: 'receive-bit',
-            end_type: 'receive'
-        },
-        'SUB_VIDEO_RECV_RESOLUTION': {
-            name: 'receive-resolution',
-            end_type: 'receive'
-        },
-        'SUB_VIDEO_LOSS_RATE': {
-            name: 'receive-loss-rate',
-            end_type: 'receive'
-        },
-
-        // audio
-        'PUB_SEND_AUDIO_INPUT_LEVEL': {
-            name: 'send-audio-level',
-            end_type: 'send'
-        },
-        'SUB_PLAY_AUDIO_INPUT_LEVEL': {
-            name: 'receive-play-volume',
-            end_type: 'receive'
-        },
-        'PUB_SEND_AUDIO_BITRATE': {
-            name: 'send-bit',
-            end_type: 'send'
-        },
-        'SUB_AUDIO_RECV_BITRATE': {
-            name: 'receive-bit',
-            end_type: 'receive'
-        },
-        'SUB_AUDIO_LOSS_RATE': {
-            name: 'receive-loss-rate',
-            end_type: 'receive'
-        },
-    }
-
-    let name_info = names[this.name];
-
-    if(!name_info) {
-        return this.name
-    }
-
-    let { userOptions } = this;
-    let stream_id = '';
-    stream_id = name_info.end_type == 'send' ? userOptions.sid : userOptions.subSId; // 订阅不同的 字段
-
-    let reg = new RegExp(`__Of_${confrId || ''}`, 'g')
-    stream_id = stream_id.replace(reg,'_'); // 裁剪
-
-    return name_info.name + '-' + stream_id;
-}
 // 将highcharts 包装一下
 const ChartsWrapper = props => {
 
@@ -603,7 +554,12 @@ const ChartsWrapper = props => {
               width: 1,
               color: "#000"
             }
-          ]
+          ],
+          xDateFormat: '%H:%m:%S',
+          formatter: function(){
+                let { confrId } = context;
+                return tableFormat.e2e_tooltip_formatter.bind(this,confrId)()
+          },
         },
         legend: {
             // enabled: false,
@@ -612,7 +568,7 @@ const ChartsWrapper = props => {
                 if(context.conference_info[0]) { // 没拿到会议信息之前，不执行
                     confrId = context.conference_info[0].confrId;
                 }
-                return legend_formatter.bind(this,confrId)();
+                return tableFormat.e2e_legend_formatter.bind(this,confrId)();
             }
         }
     };

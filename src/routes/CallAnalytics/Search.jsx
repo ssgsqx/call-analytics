@@ -273,7 +273,7 @@ class SearchParams extends PureComponent {
                 })(
                     <Select size="large" >
                         <Option value='true'>通话结束</Option>
-                        <Option value='false'>进行中</Option>
+                        {/* <Option value='false'>进行中</Option> */}
                     </Select>
                 )}
             

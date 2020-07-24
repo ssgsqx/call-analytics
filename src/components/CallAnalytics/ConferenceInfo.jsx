@@ -18,7 +18,7 @@
     {
         title: "时间",
         key: "timeRange",
-        render:(text,record) => tableFormat.get_time_range(record.joinTs,record.exitTs)
+        render:(text,record) => tableFormat.get_time_range(record.createTs,record.destroyedTs)
       },
       {
         title: "时长",
