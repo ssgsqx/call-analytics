@@ -9,9 +9,9 @@ import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 
 import { 
-    Form, Select, DatePicker, Input, Button, Col, Row, Table,
-    Popover,
-    Tabs
+    Col,
+    Tabs,
+    Spin
 } from "antd";
 
 import { get_by_confrId } from '../../services/rtc-analytics/conferences'
@@ -231,9 +231,10 @@ const CPU = props => {
     let memId = endType == 'sender' ? context.from_memId : context.to_memId;
 
     useEffect(() => {
+        setLoading(true)
         get_cpu(confrId, memId).then(response => {
             setData(response.data);
-            // setLoading(false)
+            setLoading(false)
         }).catch(error => {
             console.error('get_cpu', error);
             setLoading(false)
@@ -284,7 +285,7 @@ const Volume = props => {
     }, []);
     
     
-    return <ChartsWrapper chartOptions={chartOptions} />
+    return <ChartsWrapper chartOptions={chartOptions}  loading={loading}/>
 }
 
 // audio video bit and pack_loss
@@ -359,7 +360,7 @@ const BitAndPackLoss = props => {
 
                 let video_down_respone = await get_audio_down(confrId, memId);// 音频下行
                 let video_lost_rate_respone = await get_audio_lost_rate(confrId, memId);// 音频下行 丢包率
-    
+
                 let new_data = video_down_respone.data.concat(video_lost_rate_respone.data);
                 setLoading(false);
                 setData(new_data)
@@ -381,6 +382,22 @@ const BitAndPackLoss = props => {
                 let video_down_respone = await get_video_down(confrId, memId);
                 let video_lost_rate_respone = await get_video_lost_rate(confrId, memId);
     
+                // test start
+                // let data = video_lost_rate_respone.data.map(item => {
+
+                //     let new_datas = item.data.map(item2 => {
+                //         item2[1] = 1;
+                //         return item2
+                //     })
+                //     console.log('new_datas', new_datas);
+                //     let _o = Object.assign(item, {data: new_datas})
+                //     console.log('_o', _o);
+
+                //     return _o
+                // })
+                // console.log('data', data);
+                // let new_data = video_down_respone.data.concat(data);
+                // test end
                 let new_data = video_down_respone.data.concat(video_lost_rate_respone.data);
                 setLoading(false);
                 setData(new_data)
@@ -389,7 +406,7 @@ const BitAndPackLoss = props => {
         
     },[])
     
-    return <ChartsWrapper chartOptions={chartOptions} />
+    return <ChartsWrapper chartOptions={chartOptions}  loading={loading}/>
 }
 
 // 音频解码卡顿（待定）
@@ -443,7 +460,7 @@ const FrameRate = props => {
             })
         }
     },[])
-    return <ChartsWrapper chartOptions={chartOptions} />
+    return <ChartsWrapper chartOptions={chartOptions}  loading={loading}/>
 }
 
 // 分辨率
@@ -462,6 +479,24 @@ const Resolution = () => {
             }
         },
         series: data,
+        yAxis:{
+            min:0,
+            // max: 1880*980,
+            // tickAmount: 4,
+            // tickInterval: 
+
+            // 172800 360P
+            // 921600 720P
+            // 2073600 1080P
+
+            // labels: {
+            //     formatter: function() {
+            //         // console.log('分辨率 yAxiis this', this);
+            //         return this.value
+            //     }  
+            // }
+        }
+        
     }
     useEffect(() => {
         let confrId = context.confrId,
@@ -477,7 +512,7 @@ const Resolution = () => {
         })
     }, [])
     const context = useContext(E2eContext);
-    return <ChartsWrapper chartOptions={chartOptions} />
+    return <ChartsWrapper chartOptions={chartOptions}  loading={loading}/>
 }
 
 // 将highcharts 包装一下
@@ -510,6 +545,7 @@ const ChartsWrapper = props => {
                 lineWidth:1
             },
             series: {
+                shared: true,
                 states: {
                     hover: {
                         lineWidthPlus: 0 //hover 时 线条加粗量 默认 1
@@ -518,7 +554,8 @@ const ChartsWrapper = props => {
                 marker: {
                     enabled: false
                 },
-                pointWidth: 1
+                pointWidth: 1,
+                minPointLength: 3
             }
         },
         xAxis: {
@@ -544,8 +581,8 @@ const ChartsWrapper = props => {
             min: 0,  //最小
             // tickInterval: 120, //步长
             // max:840,//最大
-            gridLineWidth: 0,
-            tickWidth:1,
+            // gridLineWidth: 0,
+            // tickWidth:1,
         },
         tooltip: {
           shared: true,

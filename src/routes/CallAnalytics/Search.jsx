@@ -309,7 +309,7 @@ class List extends PureComponent {
         render:text => tableFormat.get_dur(text)
       },
       {
-        title: "频道名称",
+        title: "房间名称",
         dataIndex: "roomName"
       },
       {

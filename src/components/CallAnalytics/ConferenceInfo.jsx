@@ -12,7 +12,7 @@
       dataIndex: "confrId"
     },
     {
-      title: "频道名称",
+      title: "房间名称",
       dataIndex: "roomName"
     },
     {

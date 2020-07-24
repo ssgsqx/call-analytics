@@ -57,8 +57,8 @@ function qoe_tooltip_format(confrId) {
 
     const get_name = (item) => {
         let names = {
-            'SUB_AUDIO_RECV_BITRATE' : 'sub_audio',
-            'SUB_VIDEO_RECV_BITRATE' : 'sub_video'
+            'SUB_AUDIO_RECV_BITRATE' : '订阅音频',
+            'SUB_VIDEO_RECV_BITRATE' : '订阅视频'
         }
 
         let { userOptions, name } = item.series; 
@@ -106,52 +106,61 @@ function formatter_by_series(series, confrId, y) {
     
     let names = { // 几个关键字 缩短 name 
         'PUB_SEND_VIDEO_BITRATE': {
-            name: 'send-bit',
+            name: '',
             end_type: 'send'
         },
         'PUB_SEND_VIDEO_FRAME_RATE': {
-            name: 'send-fps',
+            name: '',
             end_type: 'send'
         },
         'SUB_VIDEO_RECV_FRAME_RATE': {
-            name: 'receive-fps',
+            name: '',
             end_type: 'receive'
         },
         'SUB_VIDEO_RECV_BITRATE': {
-            name: 'receive-bit',
+            name: '-码率',
             end_type: 'receive'
         },
         'SUB_VIDEO_RECV_RESOLUTION': {
-            name: 'receive-resolution',
+            name: '-分辨率',
             end_type: 'receive'
         },
         'SUB_VIDEO_LOSS_RATE': {
-            name: 'receive-loss-rate',
+            name: '-丢包率',
             end_type: 'receive'
         },
 
         // audio
         'PUB_SEND_AUDIO_INPUT_LEVEL': {
-            name: 'send-audio-level',
+            name: '',
             end_type: 'send'
         },
         'SUB_PLAY_AUDIO_INPUT_LEVEL': {
-            name: 'receive-play-volume',
+            name: '',
             end_type: 'receive'
         },
         'PUB_SEND_AUDIO_BITRATE': {
-            name: 'send-bit',
+            name: '',
             end_type: 'send'
         },
         'SUB_AUDIO_RECV_BITRATE': {
-            name: 'receive-bit',
+            name: '-码率',
             end_type: 'receive'
         },
         'SUB_AUDIO_LOSS_RATE': {
-            name: 'receive-loss-rate',
+            name: '-丢包率',
             end_type: 'receive'
         },
     }
+
+    // 分辨率的宽高 legend 不显示
+    // if(
+    //     series.name == 'SUB_VIDEO_RECV_RESOLUTION_WIDTH' ||
+    //     series.name == 'SUB_VIDEO_RECV_RESOLUTION_HEIGH'
+    // ) {
+    //     console.log(series);
+    //     return ''
+    // }
 
     let name_info = names[series.name];
 
@@ -170,10 +179,11 @@ function formatter_by_series(series, confrId, y) {
     let reg = new RegExp(`__Of_${confrId || ''}`, 'g')
     stream_id = stream_id.replace(reg,'_'); // 裁剪
 
+
     if(y != undefined) { // tooltip 需要 y 值
-        return `${name_info.name}-${stream_id}: <b>${y}</b>`;
+        return `${stream_id}${name_info.name}: <b>${y}</b>`;
     }
-    return name_info.name + '-' + stream_id;
+    return  stream_id + name_info.name;
 
 }
 

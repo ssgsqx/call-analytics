@@ -195,15 +195,10 @@ class UserPanel extends PureComponent {
             <div>
                 {can_choose_users.map((item,index) => {
                     let from_memId = item;
-                    return <div 
-                                key={index} 
-                                // onMouseOver={this.filter_chart_series.bind(this, from_memId)}
-                                // onMouseOut={this.reset_chart_series.bind(this)}
-                            >
+                    return <div key={index}>
                                 <Link 
-                                    onMouseEnter={() => console.log(from_memId)}
                                     to={`/call-analytics/e2e/${confrId}/${from_memId}/${to_memId}`}
-                                    target='_blank'>{from_memId}</Link>
+                                    target='_blank'>{tableFormat.get_short_memId(from_memId, confrId) }</Link>
                             </div>
                 })}
             </div>
@@ -214,22 +209,7 @@ class UserPanel extends PureComponent {
         
 
     }
-    // 过滤图表数据列
-    filter_chart_series(memId) {
-        let { qoe } = this.state;
-        
-        let filter_qoe = qoe.filter(item => item.subMemId == memId)
-        this.setState({
-            filter_qoe
-        })
-    }
-    reset_chart_series() {
-        let { qoe } = this.state;
-        
-        this.setState({
-            filter_qoe: qoe
-        })
-    }
+    
     render() {
         let { 
             user, 
@@ -446,7 +426,8 @@ class EventList extends PureComponent {
 
     }
 
-    get_info_by_event_type(event_type, connStateCode) {
+    get_info_by_event_type(item) {
+        // 文档 http://c1.private.easemob.com/pages/viewpage.action?pageId=12166706
         // 绿, color:'rgb(38, 185, 154)'
         // 黄, color:'rgb(255, 215, 0)'
         // 红, color:'rgb(255, 0, 0)'
@@ -493,6 +474,8 @@ class EventList extends PureComponent {
            
         };
 
+        let { event: event_type, connState:connStateCode } = item;
+        
         if(event_type == 20) {
             
             let connState = events[20][connStateCode];
@@ -518,7 +501,7 @@ class EventList extends PureComponent {
 
         let _o = {}
         event_list.map(item => {
-            let info = this.get_info_by_event_type(item.event, item.connState); // item.connState only exist at event == 20
+            let info = this.get_info_by_event_type(item); // item.connState only exist at event == 20
 
             if(info) {
                 if(!_o[info.color]){ // 计算出现次数

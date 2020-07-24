@@ -78,7 +78,7 @@ export default function UserList(props) {
       }
     },
     {
-      title: "用户进出频道时间",
+      title: "用户进出会议时间",
       dataIndex: "timeRange",
       render:(text,record) => tableFormat.get_time_range(record.joinTs,record.exitTs)
     },
@@ -88,7 +88,7 @@ export default function UserList(props) {
       render:text => tableFormat.get_dur(text)
     },
     {
-      title: "在频道内时间",
+      title: "在会议内时间",
       dataIndex: "dur",
       key:'in-confr-dur', 
       render:text => tableFormat.get_dur(text)
