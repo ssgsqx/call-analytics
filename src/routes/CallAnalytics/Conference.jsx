@@ -623,14 +623,13 @@ class EventList extends PureComponent {
     }
     
     get_event_popover_el(item, index) {
-        let { event, connState, servTime } = item
-        if(!event) {
+        let { event, servTime } = item
+        if(event == undefined) {
             return ''
         }
-        
 
-        let info = this.get_info_by_event_type(item)
-        
+        let info = this.get_info_by_event_type(item);
+
         if(!info) {
             return ''
         }
