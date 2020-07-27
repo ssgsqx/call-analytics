@@ -233,7 +233,7 @@ class UserPanel extends PureComponent {
                             { this.get_to_e2e_action_el() }
                         </div>
                         <Chart { ...{ conference_info, loading, confrId}} qoe={filter_qoe}/>
-                        <EventList { ...{event_list, conference_info}}/>
+                        <EventList { ...{event_list, conference_info, confrId}}/>
                     </div>
                 </Col>
     }
@@ -427,10 +427,34 @@ class EventList extends PureComponent {
     }
 
     get_info_by_event_type(item) {
+
+        let _this = this;
+        const get_short_name = event_info => {
+
+            // 裁剪 name 剔除 confrId:IM3V2P0AHEAITGB21AB8H00C5
+            // memId --> IM3V2P0AHEAITGB21AB8H00C5M30 ---- M30 - rtc-22-osa__Of_IM3V2P0AHEAITGB21AB8H00C5M30
+            // sId --> rtc-22-osa__Of_IM3V2P0AHEAITGB21AB8H00C5M30 --- rtc-22-osa**M30
+
+            let { confrId } = _this.props;
+        
+            let name = '';
+            let reg_sId = new RegExp(`__Of_${confrId}`, 'g'),
+                reg_memId = new RegExp(confrId, 'g')
+                name = event_info.name.replace(reg_sId,'**'); // 先缩短 sId
+                name = name.replace(reg_memId, '')
+
+            let event = {
+                name,
+                color: event_info.color
+            }
+            return event
+        }
+
         // 文档 http://c1.private.easemob.com/pages/viewpage.action?pageId=12166706
         // 绿, color:'rgb(38, 185, 154)'
         // 黄, color:'rgb(255, 215, 0)'
         // 红, color:'rgb(255, 0, 0)'
+
 
         let events = {
             0:{ name:'加入会议', color:'rgb(38, 185, 154)'},
@@ -443,54 +467,81 @@ class EventList extends PureComponent {
 
             7:{ name:'关闭自己的音频', color:'rgb(38, 185, 154)' },
             8:{ name:'关闭自己的视频', color:'rgb(38, 185, 154)' },
-            9:{ name:'切换后置摄像头', color:'rgb(255, 215, 0)' },
-            10:{ name:'成员加入', color:'rgb(38, 185, 154)' },
-            11:{ name:'成员退出', color:'rgb(255, 0, 0)' },
-            12:{ name:'流加入', color:'rgb(38, 185, 154)' },
-            13:{ name:'流退出', color:'rgb(255, 0, 0)' },
-
-            14:{ name:'pub', color:'rgb(38, 185, 154)' },
-            15:{ name:'unpub', color:'rgb(255, 0, 0)' },
-            16:{ name:'sub', color:'rgb(38, 185, 154)' },
-            17:{ name:'unsub', color:'rgb(255, 0, 0)' },
-            18:{ name:'pub失败', color:'rgb(255, 0, 0)' },
-            19:{ name:'repub', color:'rgb(255, 0, 0)' },
-            20:{ 
-                0 : { name:'RTCIceConnectionStateNew', color:'rgb(38, 185, 154)' },
-                1 : { name:'RTCIceConnectionStateChecking', color:'rgb(38, 185, 154)' },
-                2 : { name:'RTCIceConnectionStateConnected', color:'rgb(38, 185, 154)' },
-                3 : { name:'RTCIceConnectionStateCompleted', color:'rgb(38, 185, 154)' },
-                4 : { name:'RTCIceConnectionStateFailed', color:'rgb(255, 0, 0)' },
-                5 : { name:'RTCIceConnectionStateDisconnected', color:'rgb(255, 0, 0)' },
-                6 : { name:'RTCIceConnectionStateClosed', color:'rgb(255, 0, 0)' },
-                7 : { name:'RTCIceConnectionStateCount', color:'rgb(255, 215, 0)' },
+            9:{ 
+                name:`切换${item.cameraPos == 1 ? '后置' : '前置'}摄像头`, 
+                color:'rgb(255, 215, 0)' 
             },
-            21:{ name:'ROLE_CHANGE', color:'rgb(38, 185, 154)' },
+            10:{ name:`${item.addMemId}加入`, color:'rgb(38, 185, 154)' },
+            11:{ name:`${item.removeMemId}退出`, color:'rgb(255, 0, 0)' },
+            12:{ 
+                name:`${item.addMemId}发布了 ${item.streamType == 1 ? '桌面' : '媒体'}流 - ${item.sId}`, 
+                color:'rgb(38, 185, 154)' 
+            },
+            13:{ 
+                name:`${item.removeMemId}取消发布 ${item.streamType == 1 ? '桌面' : '媒体'}流 - ${item.sId}`, 
+                color:'rgb(255, 0, 0)' 
+            },
+
+            14:{ 
+                name:`发布自己的 ${item.streamType == 1 ? '桌面' : '媒体'}流`, 
+                color:'rgb(38, 185, 154)' 
+            },
+            15:{ 
+                name:`取消发布自己的 ${item.streamType == 1 ? '桌面' : '媒体'}流`, 
+                color:'rgb(255, 0, 0)' 
+            },
+            16:{ 
+                name:`订阅 ${item.subMemId}的 ${item.streamType == 1 ? '桌面' : '媒体'}流 - ${item.sId}`, 
+                color:'rgb(38, 185, 154)' 
+            },
+            17:{ 
+                name:`取消订阅 ${item.unsubMemId}的流 - ${item.sId}`,  
+                color:'rgb(255, 0, 0)' 
+            },
+            18:{ name:`发布自己的 ${item.streamType == 1 ? '桌面' : '媒体'}流失败`, color:'rgb(255, 0, 0)' },
+            19:{ name:`重新发布自己的 ${item.streamType == 1 ? '桌面' : '媒体'}流`, color:'rgb(38, 185, 154)' },
+            20:{ 
+                // 0 : { name:'RTCIceConnectionStateNew', color:'rgb(38, 185, 154)' },
+                1 : { name:'正在建立媒体连接', color:'rgb(38, 185, 154)' },
+                2 : { name:'媒体连接已协商', color:'rgb(38, 185, 154)' },
+                3 : { name:'媒体连接成功', color:'rgb(38, 185, 154)' },
+                4 : { name:'媒体连接失败', color:'rgb(255, 0, 0)' },
+                5 : { name:'媒体连接已断开', color:'rgb(255, 0, 0)' },
+                // 6 : { name:'RTCIceConnectionStateClosed', color:'rgb(255, 0, 0)' },
+                // 7 : { name:'RTCIceConnectionStateCount', color:'rgb(255, 215, 0)' },
+            },
+            21:{ 
+                name:` 成为 ${
+                        item.role == 1 ? '观众' :
+                        item.role == 3 ? '主播': '主持人'
+                    } `, 
+                color:'rgb(38, 185, 154)' 
+            },
 
             22:{ name:'发送音频首帧', color:'rgb(38, 185, 154)' },
-            23:{ name:'发送视频首帧', color:'rgb(38, 185, 154)' },
+            23:{ name:`发送 ${item.streamType == 1 ? '桌面' : '媒体'}流视频首帧 - ${item.sId}`, color:'rgb(38, 185, 154)' },
             24:{ name:'接收音频首帧', color:'rgb(38, 185, 154)' },
-            25:{ name:'接收视频首帧', color:'rgb(38, 185, 154)' },
+            25:{ name:`接收 ${item.subMemId} 的 ${item.streamType == 1 ? '桌面' : '媒体'}流视频首帧 - ${item.sId}`, color:'rgb(38, 185, 154)' },
            
         };
 
         let { event: event_type, connState:connStateCode } = item;
-        
+
         if(event_type == 20) {
             
             let connState = events[20][connStateCode];
 
             if(!connState) {
                 return {
-                    name:'STREAM_PC_CONNECT_STATE', 
+                    name:'', 
                     color:'rgb(38, 185, 154)',
                 }
             }
             connState.name = connState.name.replace(/(RTC|Connection)/g, '')
-            return connState // 裁剪
+            return get_short_name(connState) // 裁剪
         }
 
-        return events[event_type]
+        return get_short_name(events[event_type])
     }
     // 给柱子添加背景色
     get_column_background(event_list) {
@@ -578,7 +629,7 @@ class EventList extends PureComponent {
         }
         
 
-        let info = this.get_info_by_event_type(event,connState)
+        let info = this.get_info_by_event_type(item)
         
         if(!info) {
             return ''
