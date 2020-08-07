@@ -6,8 +6,8 @@ import EasemobCfg from '../../common/commonCfg';
 
 // const origin = '/api';
 // const origin = 'https://rtc-turn4-hsb.easemob.com';
-// const origin = 'https://a1-hsb.easemob.com';
-const origin = 'https://a1.easemob.com';
+const origin = 'https://a1-hsb.easemob.com';
+// const origin = 'https://a1.easemob.com';
 
 const appkey = localStorage.getItem('easemob-appkey');
 
