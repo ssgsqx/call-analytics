@@ -80,7 +80,19 @@
     }
 }
 :global {
-    .ant-layout.ant-layout-has-sider > .ant-layout, .ant-layout.ant-layout-has-sider > .ant-layout-content {
+    .ant-layout > .ant-layout-content {
         overflow-x: auto;
+    }
+    .custom-nav-back {
+        padding: 0 10px 15px;
+        font: 18px bold;
+        
+        span {
+            cursor: pointer;
+            &:hover{
+                opacity: 0.7;
+            }
+
+        }
     }
 }

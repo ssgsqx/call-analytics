@@ -1,24 +1,13 @@
 import { stringify } from 'qs';
 import request from '../../utils/request';
-import EasemobCfg from '../../common/commonCfg';
-
-// const origin = EasemobCfg.rest.url;
-// const origin = '/api';
-// const origin = 'https://rtc-turn4-hsb.easemob.com';
-const origin = 'https://a1-hsb.easemob.com';
-// const origin = 'https://a1.easemob.com';
+import config from './config';
 
 
-// const prefix = origin;
+const { prefix } = config;
+
 // 通话列表
 export async function get(pageNum, pageSize, params) {
 
-    const appkey = localStorage.getItem('easemob-appkey');
-
-    const orgName = appkey.split('#')[0];
-    const appName = appkey.split('#')[1];
-
-    const prefix = origin + '/' + orgName + '/' + appName;
     if(
         pageNum == undefined ||
         !pageSize 
@@ -47,12 +36,6 @@ export async function get(pageNum, pageSize, params) {
 // 通话详情
 export async function get_by_confrId(params) {
 
-    const appkey = localStorage.getItem('easemob-appkey');
-
-    const orgName = appkey.split('#')[0];
-    const appName = appkey.split('#')[1];
-
-    const prefix = origin + '/' + orgName + '/' + appName;
     if(
         !params ||
         !params.confrId

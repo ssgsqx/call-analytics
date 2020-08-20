@@ -37,19 +37,37 @@ class Search extends PureComponent {
     }
 
     componentDidMount() {
-
+        sessionStorage.removeItem('easemob-appkey'); // 每次进入重置
+        sessionStorage.removeItem('easemob-access_token');
+        sessionStorage.removeItem('easemob-cluster');
         // 存储 appkey 
         const { appkey } = getPageQuery('appkey');
-        localStorage.setItem('easemob-appkey',appkey || '') // undefind 存进去 为字符串，影响后面判断
+        const { access_token } = getPageQuery('access_token');
+        const { cluster } = getPageQuery('cluster');
+        
+        
         // 没有 appkey 给出提示
         if(!appkey) {
             notification['error']({
                 message: '请在url 中填写 appkey query',
             });
+            
+            return
+        }
+        sessionStorage.setItem('easemob-appkey',appkey);
+
+        if(!access_token) {
+            notification['error']({
+                message: '缺少 access_token 参数',
+            });
 
             return
         }
-
+        sessionStorage.setItem('easemob-access_token',access_token);
+        
+        if(cluster) { // 集群参数 if cluster == vip6, 需要更换域名
+            sessionStorage.setItem('easemob-cluster',cluster);
+        }
         this.get_list()
     }
 
@@ -98,9 +116,6 @@ class Search extends PureComponent {
             })
         }
         
-        
-
-
     }
     get_prev() {
         this.setState(state => ({
@@ -142,7 +157,7 @@ class Search extends PureComponent {
     }
     
     render() {
-        let appkey = localStorage.getItem('easemob-appkey');
+        let appkey = sessionStorage.getItem('easemob-appkey');
 
         if(!appkey) {
             return <i></i>
@@ -318,7 +333,6 @@ class List extends PureComponent {
         render:(text,record) => (
                 <Link 
                     to={`/call-analytics/conference/${record.confrId}`}
-                    target='_blank'
                 >
                     {record.finished ? '查看通话' : '进行中'}
                 </Link>

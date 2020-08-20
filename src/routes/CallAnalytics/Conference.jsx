@@ -21,7 +21,8 @@ import HighchartsReact from "highcharts-react-official";
 import { 
     Button, Col, Row,
     Popover,
-    Spin
+    Spin,
+    Icon
 } from "antd";
 
 import moment from 'moment';
@@ -72,6 +73,9 @@ class Conference extends PureComponent {
         } = this.state;
     return (
         <div className={style.wrapper}>
+            <div className='custom-nav-back' >
+                <span onClick={this.props.history.goBack}> <Icon type="arrow-left" /> 会议列表 </span>
+            </div>
             <ConferenceInfo data={basic_info} loading={basic_info_table_loading}/>
             <UserList 
                 data={user_list} 
@@ -185,7 +189,7 @@ class UserPanel extends PureComponent {
             let from_memId = can_choose_users[0];
             return <Link 
                         to={`/call-analytics/e2e/${confrId}/${from_memId}/${to_memId}`}
-                        target='_blank'>
+                    >
                         <Button style={{float:'right'}} shape="round">查看详情</Button>
                     </Link>
         }
@@ -198,7 +202,8 @@ class UserPanel extends PureComponent {
                     return <div key={index}>
                                 <Link 
                                     to={`/call-analytics/e2e/${confrId}/${from_memId}/${to_memId}`}
-                                    target='_blank'>{tableFormat.get_short_memId(from_memId, confrId) }</Link>
+                                    
+                                >{tableFormat.get_short_memId(from_memId, confrId) }</Link>
                             </div>
                 })}
             </div>

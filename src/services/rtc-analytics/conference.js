@@ -1,20 +1,8 @@
 
-import { stringify } from 'qs';
 import request from '../../utils/request';
-import EasemobCfg from '../../common/commonCfg';
+import config from './config';
 
-
-// const origin = '/api';
-// const origin = 'https://rtc-turn4-hsb.easemob.com';
-const origin = 'https://a1-hsb.easemob.com';
-// const origin = 'https://a1.easemob.com';
-
-const appkey = localStorage.getItem('easemob-appkey');
-
-const orgName = appkey.split('#')[0];
-const appName = appkey.split('#')[1];
-
-const prefix = origin + '/' + orgName + '/' + appName;
+const { prefix } = config;
 
 // 通话成员列表
 export async function get_users(confrId, params) {

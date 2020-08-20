@@ -11,7 +11,8 @@ import HighchartsReact from "highcharts-react-official";
 import { 
     Col,
     Tabs,
-    Spin
+    Spin,
+    Icon
 } from "antd";
 
 import { get_by_confrId } from '../../services/rtc-analytics/conferences'
@@ -106,6 +107,9 @@ class E2e extends PureComponent {
 
     return (
       <div className={style['e2e-wrapper']}>
+        <div className='custom-nav-back' >
+            <span onClick={this.props.history.goBack} > <Icon type="arrow-left" /> 通话详情 </span>
+        </div>
         <ConferenceInfo data={conference_info} loading={conference_info_table_loading}/>
         <UserList 
             data={user_list} 

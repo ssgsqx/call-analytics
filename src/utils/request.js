@@ -48,6 +48,9 @@ function checkStatus(response) {
 export default function request(url, options) {
   const defaultOptions = {
     credentials: 'include',
+    headers: {
+        // access_token: sessionStorage.getItem('easemob-access_token')
+    }
   };
   const newOptions = { ...defaultOptions, ...options };
   if (
@@ -60,6 +63,7 @@ export default function request(url, options) {
         Accept: 'application/json',
         'Content-Type': 'application/json; charset=utf-8',
         ...newOptions.headers,
+
       };
       newOptions.body = JSON.stringify(newOptions.body);
     } else {
