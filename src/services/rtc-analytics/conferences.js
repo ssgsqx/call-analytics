@@ -3,7 +3,7 @@ import request from '../../utils/request';
 import config from './config';
 
 
-const { prefix } = config;
+const { get_prefix } = config;
 
 // 通话列表
 export async function get(pageNum, pageSize, params) {
@@ -31,7 +31,7 @@ export async function get(pageNum, pageSize, params) {
             })
         })  
     }
-    return request( prefix + `/rtc/analytics/conferences/${pageNum}/${pageSize}?${stringify(params)}`);
+    return request( get_prefix() + `/rtc/analytics/conferences/${pageNum}/${pageSize}?${stringify(params)}`);
 }
 // 通话详情
 export async function get_by_confrId(params) {
@@ -48,5 +48,5 @@ export async function get_by_confrId(params) {
         }) 
     }
 
-    return request( `${prefix}/rtc/analytics/conferences?${stringify(params)}`);
+    return request( `${get_prefix()}/rtc/analytics/conferences?${stringify(params)}`);
 }

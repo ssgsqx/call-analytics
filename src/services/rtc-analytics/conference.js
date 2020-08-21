@@ -2,7 +2,7 @@
 import request from '../../utils/request';
 import config from './config';
 
-const { prefix } = config;
+const { get_prefix } = config;
 
 // 通话成员列表
 export async function get_users(confrId, params) {
@@ -28,7 +28,7 @@ export async function get_users(confrId, params) {
         }
     }
 
-    return request( `${prefix}/rtc/analytics/conference/${confrId}/users${params_str}`);
+    return request( `${get_prefix()}/rtc/analytics/conference/${confrId}/users${params_str}`);
 }
 
 // 通话成员事件集合
@@ -46,7 +46,7 @@ export async function get_event_list(confrId, memId, params) {
         })
     }
 
-    return request( `${prefix}/rtc/analytics/conference/${confrId}/user/${memId}/events`);
+    return request( `${get_prefix()}/rtc/analytics/conference/${confrId}/user/${memId}/events`);
 }
 
 // 通话质量数据集合
@@ -63,5 +63,5 @@ export async function get_qoe(confrId, memId, params) {
         })
     }
 
-    return request( `${prefix}/rtc/analytics/conference/${confrId}/user/${memId}/qoe`);
+    return request( `${get_prefix()}/rtc/analytics/conference/${confrId}/user/${memId}/qoe`);
 }
