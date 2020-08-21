@@ -22,7 +22,7 @@ class Search extends PureComponent {
     state = {
         data: [],
         loading: false,
-        pageNum: 0,
+        pageNum:getPageQuery('pageNum').pageNum || 0, // 记忆当前页
         pageSize: 15,
         next_disabled: false,
         params: {
@@ -71,13 +71,20 @@ class Search extends PureComponent {
         this.get_list()
     }
 
+    set_pageNum_to_url(num) {
+        if(num == undefined) return;
+        let url = window.location.href.replace(/pageNum=[0-9]*/, 'pageNum='+num);
+        window.location.replace(url)
+    }
     // 设置请求参数
     update_params(params) {
         this.setState({
             params,
             pageNum: 0,
             next_disabled: false
-        }, this.get_list)
+        }, this.get_list);
+
+        this.set_pageNum_to_url(0)
     }
     // format
     get_format_params() {
@@ -118,17 +125,28 @@ class Search extends PureComponent {
         
     }
     get_prev() {
-        this.setState(state => ({
-            pageNum: state.pageNum - 1,
-            next_disabled: false
-        }), this.get_list)
+        let _this = this;
+        this.setState(state => {
+            let pageNum = Number(state.pageNum) - 1;
+            _this.set_pageNum_to_url(pageNum); // 记忆页码
+            return {
+                pageNum,
+                next_disabled: false
+            }
+        }, this.get_list)
     }
     // 请求下一页 
     get_next() {
 
-        this.setState(state => ({
-            pageNum: state.pageNum + 1 
-        }), this.get_list)
+        let _this = this;
+        this.setState(state => {
+            let pageNum = Number(state.pageNum) + 1;
+            _this.set_pageNum_to_url(pageNum); // 记忆页码
+            return {
+                pageNum
+            }
+        }, this.get_list)
+
 
     }
     get_list() {

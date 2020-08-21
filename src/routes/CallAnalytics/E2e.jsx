@@ -89,7 +89,7 @@ class E2e extends PureComponent {
   render() {
     let { 
         confrId,
-        from_memId,
+        from_memId, // 发送端memId
         to_memId,
         conference_info, 
         conference_info_table_loading,
@@ -320,10 +320,10 @@ const BitAndPackLoss = props => {
     }
 
     let chart_title_texts = {
-        'audio_sender': '音频上行',
-        'audio_receiver': '音频下行和端到端丢包',
-        'video_sender': '视频上行',
-        'video_receiver': '视频下行和端对端丢包'
+        'audio_sender': '音频上行码率',
+        'audio_receiver': '音频下行码率和丢包率',
+        'video_sender': '视频上行码率',
+        'video_receiver': '视频下行码率和丢包率'
     };
 
     let chartOptions = {
@@ -386,22 +386,6 @@ const BitAndPackLoss = props => {
                 let video_down_respone = await get_video_down(confrId, memId);
                 let video_lost_rate_respone = await get_video_lost_rate(confrId, memId);
     
-                // test start
-                // let data = video_lost_rate_respone.data.map(item => {
-
-                //     let new_datas = item.data.map(item2 => {
-                //         item2[1] = 1;
-                //         return item2
-                //     })
-                //     console.log('new_datas', new_datas);
-                //     let _o = Object.assign(item, {data: new_datas})
-                //     console.log('_o', _o);
-
-                //     return _o
-                // })
-                // console.log('data', data);
-                // let new_data = video_down_respone.data.concat(data);
-                // test end
                 let new_data = video_down_respone.data.concat(video_lost_rate_respone.data);
                 setLoading(false);
                 setData(new_data)
@@ -411,11 +395,6 @@ const BitAndPackLoss = props => {
     },[])
     
     return <ChartsWrapper chartOptions={chartOptions}  loading={loading}/>
-}
-
-// 音频解码卡顿（待定）
-const AudioFreeze = props => {
-    
 }
 
 // 视频帧率

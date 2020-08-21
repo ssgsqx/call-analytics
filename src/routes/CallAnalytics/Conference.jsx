@@ -459,11 +459,22 @@ class EventList extends PureComponent {
         // 绿, color:'rgb(38, 185, 154)'
         // 黄, color:'rgb(255, 215, 0)'
         // 红, color:'rgb(255, 0, 0)'
-
+        let exitReason = {
+            0: '正常挂断', 
+            1: "没响应",
+            2: "服务器拒绝",
+            3: "对方忙",
+            4: "网络原因",
+            5: "不支持",
+            6: "超时",
+            10: "其他设备登录",
+            11: "会议关闭",
+            12: "被踢出了会议"
+        }
 
         let events = {
             0:{ name:'加入会议', color:'rgb(38, 185, 154)'},
-            1:{ name:'退出会议', color:'rgb(255, 0, 0)' },
+            1:{ name:`退出会议(${exitReason[item.reason]})`, color:'rgb(255, 0, 0)' },
             2:{ name:'网络连接成功', color:'rgb(38, 185, 154)' },
             3:{ name:'网络连接断开', color:'rgb(255, 0, 0)' },
             4:{ name:'网络质量差', color:'rgb(255, 0, 0)' },
