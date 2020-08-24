@@ -129,7 +129,6 @@ const Details = () => {
     const [current_tab_key, set_current_tab_key] = useState('video');
     
     const change = key => {
-        console.log('Details change');
         set_current_tab_key(key); // modify state.current_tab_key, clear component cache
     }
     const { TabPane } = Tabs;
@@ -326,6 +325,20 @@ const BitAndPackLoss = props => {
         'video_receiver': '视频下行码率和丢包率'
     };
 
+    const get_data = () => {
+
+        
+        data.map(item => {
+            if(item.name.indexOf('BITRATE') > -1) { // 分开 Y 轴
+                item.yAxis = 0;
+            } else if(item.name.indexOf('LOSS_RATE') > -1) {
+                item.yAxis = 1;
+            }
+            delete item.threshold // 删除这个参数, conlumn 显示不正常
+        })
+        
+        return data
+    }
     let chartOptions = {
         title:{
             text: chart_title_texts[chart_type]
@@ -335,15 +348,27 @@ const BitAndPackLoss = props => {
                 color:'#FF0000'
             }
         },
-        yAxis: {
+        yAxis: [{
             labels: {
                 formatter: function() {
                     return this.value + "KBps";
                 },
-            }
-        },
-        series: data
+            },
+            title: {
+                text: null // y 轴标题
+            },
+            min: 0
+        }, {
+            title: {
+                text: null // y 轴标题
+            },
+            min:0,
+            max:100,
+            visible: false
+        }],
+        series: get_data()
     }
+
     const context = useContext(E2eContext);
     // 请求数据
     useEffect(() => {
@@ -362,10 +387,10 @@ const BitAndPackLoss = props => {
 
             (async () => {
 
-                let video_down_respone = await get_audio_down(confrId, memId);// 音频下行
-                let video_lost_rate_respone = await get_audio_lost_rate(confrId, memId);// 音频下行 丢包率
-
-                let new_data = video_down_respone.data.concat(video_lost_rate_respone.data);
+                let audio_down_respone = await get_audio_down(confrId, memId);// 音频下行
+                let audio_lost_rate_respone = await get_audio_lost_rate(confrId, memId);// 音频下行 丢包率
+                
+                let new_data = audio_down_respone.data.concat(audio_lost_rate_respone.data);
                 setLoading(false);
                 setData(new_data)
             })();
@@ -385,7 +410,7 @@ const BitAndPackLoss = props => {
 
                 let video_down_respone = await get_video_down(confrId, memId);
                 let video_lost_rate_respone = await get_video_lost_rate(confrId, memId);
-    
+                
                 let new_data = video_down_respone.data.concat(video_lost_rate_respone.data);
                 setLoading(false);
                 setData(new_data)
@@ -497,7 +522,24 @@ const Resolution = () => {
     const context = useContext(E2eContext);
     return <ChartsWrapper chartOptions={chartOptions}  loading={loading}/>
 }
+// 优先默认显示 发送端的数据
+const set_chart_visible = data => {
+    const context = useContext(E2eContext);
+    if(!context || !context.from_memId) {
+        return data
+    }
+    
+    data.map(item => {
+        console.log();
+        if(item.subMemId){// 只处理订阅端
+            if( item.subMemId != context.from_memId) {
+                item.visible = false;
+            }
+        }
+    })
 
+    return data
+}
 // 将highcharts 包装一下
 const ChartsWrapper = props => {
 
@@ -528,7 +570,6 @@ const ChartsWrapper = props => {
                 lineWidth:1
             },
             series: {
-                shared: true,
                 states: {
                     hover: {
                         lineWidthPlus: 0 //hover 时 线条加粗量 默认 1
@@ -538,7 +579,7 @@ const ChartsWrapper = props => {
                     enabled: false
                 },
                 pointWidth: 1,
-                minPointLength: 3
+                minPointLength: 0
             }
         },
         xAxis: {
@@ -556,16 +597,8 @@ const ChartsWrapper = props => {
           title: {
             text: null // y 轴标题
           },
-        //   labels: {
-        //     formatter: function() {
-        //       return Math.abs(this.value) + "kbps";
-        //     }
-        //   },
-            min: 0,  //最小
-            // tickInterval: 120, //步长
-            // max:840,//最大
-            // gridLineWidth: 0,
-            // tickWidth:1,
+          min: 0,  //最小
+            
         },
         tooltip: {
           shared: true,
@@ -582,7 +615,6 @@ const ChartsWrapper = props => {
           },
         },
         legend: {
-            // enabled: false,
             labelFormatter: function() {
                 let confrId;
                 if(context.conference_info[0]) { // 没拿到会议信息之前，不执行
@@ -614,12 +646,16 @@ const ChartsWrapper = props => {
                 // 不是Object 则以main为主，忽略即可。故不需要else
                 if (isJSON(source[key])) {
                     deepAssignObj(source[key], target[key]);  // 严格模式，arguments.callee 递归调用报错 
+                } 
+                else {
+                    options[key] = source[key]
                 }
             }
         }
 
         deepAssignObj(props.chartOptions,options) // 深度合并对象
 
+        options.series = set_chart_visible(options.series) // 处理订阅端默认显示发送端的流
         if(
             !options.series ||
             options.series.length == 0

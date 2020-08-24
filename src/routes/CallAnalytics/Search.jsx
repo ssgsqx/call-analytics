@@ -68,7 +68,12 @@ class Search extends PureComponent {
         if(cluster) { // 集群参数 if cluster == vip6, 需要更换域名
             sessionStorage.setItem('easemob-cluster',cluster);
         }
-        this.get_list()
+        this.get_list();
+
+        if(!getPageQuery('pageNum').pageNum) { // add pageNum params to url
+            let url = window.location.href + '&pageNum=0';
+            window.location.replace(url)
+        }
     }
 
     set_pageNum_to_url(num) {
