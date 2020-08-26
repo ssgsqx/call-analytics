@@ -321,9 +321,6 @@ class Chart extends PureComponent {
                         return Math.abs(this.value) + "KBps";
                     }
                 },
-                // min: -120,  //最小
-                // tickInterval: 120, //步长
-                // max:840,//最大
                 gridLineWidth: 0,
                 tickWidth:1,
                 plotLines:[{
@@ -474,7 +471,7 @@ class EventList extends PureComponent {
 
         let events = {
             0:{ name:'加入会议', color:'rgb(38, 185, 154)'},
-            1:{ name:`退出会议(${exitReason[item.reason]})`, color:'rgb(255, 0, 0)' },
+            1:{ name:`退出会议(${exitReason[item.reason] || ''})`, color:'rgb(255, 0, 0)' },
             2:{ name:'网络连接成功', color:'rgb(38, 185, 154)' },
             3:{ name:'网络连接断开', color:'rgb(255, 0, 0)' },
             4:{ name:'网络质量差', color:'rgb(255, 0, 0)' },
@@ -646,7 +643,7 @@ class EventList extends PureComponent {
 
         let info = this.get_info_by_event_type(item);
 
-        if(!info) {
+        if(!info || !info.name) {
             return ''
         }
         return (

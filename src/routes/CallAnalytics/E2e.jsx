@@ -476,6 +476,18 @@ const Resolution = () => {
     const [data,setData] = useState([]);
     const [loading,setLoading] = useState(false);
 
+    const set_showInLegend = data => {
+        data.map(item => {
+            if(
+                (item.name == 'SUB_VIDEO_RECV_RESOLUTION_HEIGH' ||
+                item.name == 'SUB_VIDEO_RECV_RESOLUTION_WIDTH') &&
+                item.type == 'line'
+            ) { // 宽高数据不显示图例
+                item.showInLegend = false
+            }
+        })
+        return data
+    }
     let chartOptions = {
         title:{
             text: '视频接收分辨率'
@@ -486,24 +498,28 @@ const Resolution = () => {
                 lineWidth:1
             }
         },
-        series: data,
-        yAxis:{
-            min:0,
-            // max: 1880*980,
-            // tickAmount: 4,
-            // tickInterval: 
+        series: set_showInLegend(data),
+        tooltip: {
+            formatter: function(){ // 单独提出来格式化, 显示格式不同于其他
+                  let { confrId } = context;
+                  let sId,height,width;
+                  this.points.map(item => {
+                    if( item.series.name == 'SUB_VIDEO_RECV_RESOLUTION_HEIGH' ) { 
+                        height = item.y
+                    }
+                    if( item.series.name == 'SUB_VIDEO_RECV_RESOLUTION_WIDTH' ) {
+                        width = item.y
+                    }
 
-            // 172800 360P
-            // 921600 720P
-            // 2073600 1080P
+                    if(item.series.name == 'SUB_VIDEO_RECV_RESOLUTION') {
+                        let reg = new RegExp(`__Of_${confrId || ''}`, 'g')
+                        sId = item.series.userOptions.subSId.replace(reg,'_'); // 裁剪
+                    }
+                  })
 
-            // labels: {
-            //     formatter: function() {
-            //         // console.log('分辨率 yAxiis this', this);
-            //         return this.value
-            //     }  
-            // }
-        }
+                  return `${sId}-分辨率：${width} * ${height}`
+            },
+          },
         
     }
     useEffect(() => {
@@ -520,6 +536,7 @@ const Resolution = () => {
         })
     }, [])
     const context = useContext(E2eContext);
+
     return <ChartsWrapper chartOptions={chartOptions}  loading={loading}/>
 }
 // 优先默认显示 发送端的数据
@@ -648,7 +665,7 @@ const ChartsWrapper = props => {
                     deepAssignObj(source[key], target[key]);  // 严格模式，arguments.callee 递归调用报错 
                 } 
                 else {
-                    options[key] = source[key]
+                    target[key] = source[key]
                 }
             }
         }

@@ -77,7 +77,6 @@ function qoe_tooltip_format(confrId) {
     this.points.map(item => {
         value += get_name(item) + '<br/>'
     })
-    // let name_prefix = 
 
     return value
 }
@@ -153,14 +152,6 @@ function formatter_by_series(series, confrId, y) {
         },
     }
 
-    // 分辨率的宽高 legend 不显示
-    // if(
-    //     series.name == 'SUB_VIDEO_RECV_RESOLUTION_WIDTH' ||
-    //     series.name == 'SUB_VIDEO_RECV_RESOLUTION_HEIGH'
-    // ) {
-    //     console.log(series);
-    //     return ''
-    // }
 
     let name_info = names[series.name];
 
