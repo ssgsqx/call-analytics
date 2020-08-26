@@ -38,11 +38,11 @@ class Search extends PureComponent {
 
     componentDidMount() {
         sessionStorage.removeItem('easemob-appkey'); // 每次进入重置
-        sessionStorage.removeItem('easemob-access_token');
+        sessionStorage.removeItem('easemob-Authorization');
         sessionStorage.removeItem('easemob-cluster');
         // 存储 appkey 
         const { appkey } = getPageQuery('appkey');
-        const { access_token } = getPageQuery('access_token');
+        const { Authorization } = getPageQuery('Authorization');
         const { cluster } = getPageQuery('cluster');
         
         
@@ -56,14 +56,14 @@ class Search extends PureComponent {
         }
         sessionStorage.setItem('easemob-appkey',appkey);
 
-        if(!access_token) {
+        if(!Authorization) {
             notification['error']({
-                message: '缺少 access_token 参数',
+                message: '缺少 Authorization 参数',
             });
 
             return
         }
-        sessionStorage.setItem('easemob-access_token',access_token);
+        sessionStorage.setItem('easemob-Authorization',Authorization);
         
         if(cluster) { // 集群参数 if cluster == vip6, 需要更换域名
             sessionStorage.setItem('easemob-cluster',cluster);

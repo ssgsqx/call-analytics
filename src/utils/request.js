@@ -49,7 +49,7 @@ export default function request(url, options) {
   const defaultOptions = {
     credentials: 'include',
     headers: {
-        // access_token: sessionStorage.getItem('easemob-access_token')
+        Authorization: sessionStorage.getItem('easemob-Authorization')
     }
   };
   const newOptions = { ...defaultOptions, ...options };
