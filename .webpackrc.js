@@ -6,6 +6,7 @@ export default {
   env: {
     development: {
       extraBabelPlugins: ['dva-hmr'],
+      publicPath:'/'
     },
   },
   externals: {
@@ -24,7 +25,7 @@ export default {
     javascriptEnabled: true,
   },
   disableDynamicImport: true,
-  publicPath: '/',
+  publicPath: './',
   hash: true,
   proxy: {
         "/api": {
