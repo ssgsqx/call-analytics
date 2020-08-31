@@ -6,7 +6,8 @@
   "scripts": {
     "start": "cross-env ESLINT=none roadhog dev",
     "start:no-proxy": "cross-env NO_PROXY=true ESLINT=none roadhog dev",
-    "build": "cross-env NO_PROXY=true ESLINT=none roadhog build",
+    "build:test": "cross-env APP_ENV=test NO_PROXY=true ESLINT=none roadhog build",
+    "build:prod": "cross-env APP_ENV=production NO_PROXY=true ESLINT=none roadhog build",
     "site": "roadhog-api-doc static && gh-pages -d dist",
     "analyze": "cross-env ANALYZE=true roadhog build",
     "lint:style": "stylelint \"src/**/*.less\" --syntax less",

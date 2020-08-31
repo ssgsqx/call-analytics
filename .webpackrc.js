@@ -1,7 +1,12 @@
 const path = require('path');
 
 export default {
+    define: {
+        'process.env': {},
+        'process.env.APP_ENV': process.env.APP_ENV || 'development', // 自定义环境变量
+    },
   entry: 'src/index.js',
+  outputPath: process.env.APP_ENV == 'production' ? './call-analytics-prod/' : './call-analytics/',
   extraBabelPlugins: [['import', { libraryName: 'antd', libraryDirectory: 'es', style: true }]],
   env: {
     development: {

@@ -3,8 +3,12 @@
 const get_prefix = () => { // 在调用API的时候，再去获取, 初始化不准确
     // const origin = '/api';
     // const origin = 'https://rtc-turn4-hsb.easemob.com';
-    let origin = 'https://a1-hsb.easemob.com';
-    // const origin = 'https://a1.easemob.com';
+    // let origin = 'https://a1-hsb.easemob.com';
+    let origin = 'https://a1.easemob.com';
+
+    if(process.env.APP_ENV == 'production') {
+        origin = 'https://a1.easemob.com';
+    };
 
     if(sessionStorage.getItem('easemob-cluster') == 'vip6') {
         origin = 'https://a1-vip6.easemob.com'
