@@ -84,14 +84,18 @@ export default function request(url, options) {
       return response.json();
     })
     .catch(e => {
-      const { dispatch } = store;
-      const status = e.name;
-      if (status === 401) {
-        dispatch({
-          type: 'login/logout',
+      
+        notification.error({
+            message: e.name,
+            description: e.message,
         });
-        return;
-      }
+    
+    //   if (status === 401) {
+    //     dispatch({
+    //       type: 'login/logout',
+    //     });
+    //     return;
+    //   }
     //   if (status === 403) {
     //     dispatch(routerRedux.push('/exception/403'));
     //     return;
