@@ -393,7 +393,8 @@ const CustomPagination = props => {
             <li 
                 className={(pageNum == 0 ? 'ant-pagination-disabled' : '') + " ant-pagination-prev"} 
                 title="上一页" 
-                onClick={props.get_prev}
+                // disabled={'disabled': false}
+                onClick={pageNum == 0 ? '' : props.get_prev}
             >
                 <a className="ant-pagination-item-link">
                     <Icon type="left" />
@@ -403,7 +404,8 @@ const CustomPagination = props => {
             <li 
                 className={(next_disabled ? 'ant-pagination-disabled' : '') + " ant-pagination-prev"} 
                 title="下一页" 
-                onClick={props.get_next}
+                // disabled={'disabled': false}
+                onClick={next_disabled ? '' : props.get_next}
             >
                 <a className="ant-pagination-item-link">
                     <Icon type="right" />
