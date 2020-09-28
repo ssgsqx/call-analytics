@@ -84,11 +84,11 @@ export default function request(url, options) {
       return response.json();
     })
     .catch(e => {
-      
-        notification.error({
-            message: e.name,
-            description: e.message,
-        });
+        console.log('fetch error', e);
+        // notification.error({
+        //     message: e.name,
+        //     description: e.message,
+        // });
     
     //   if (status === 401) {
     //     dispatch({
